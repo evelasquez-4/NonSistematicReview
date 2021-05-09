@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE dblp SYSTEM "dblp.dtd">
+<dblp>
+<article mdate="2020-03-12" key="tr/meltdown/s18" publtype="informal">
+<author>Paul Kocher</author>
+<author>Daniel Genkin</author>
+<author>Daniel Gruss</author>
+<author>Werner Haas</author>
+<author>Mike Hamburg</author>
+<author>Moritz Lipp</author>
+<author>Stefan Mangard</author>
+<author>Thomas Prescher 0002</author>
+<author>Michael Schwarz 0001</author>
+<author>Yuval Yarom</author>
+<title>Spectre Attacks: Exploiting Speculative Execution.</title>
+<journal>meltdownattack.com</journal>
+<year>2018</year>
+<ee type="oa">https://spectreattack.com/spectre.pdf</ee>
+</article>
+
+<article mdate="2020-03-12" key="tr/meltdown/m18" publtype="informal">
+<author>Moritz Lipp</author>
+<author>Michael Schwarz 0001</author>
+<author>Daniel Gruss</author>
+<author>Thomas Prescher 0002</author>
+<author>Werner Haas</author>
+<author>Stefan Mangard</author>
+<author>Paul Kocher</author>
+<author>Daniel Genkin</author>
+<author>Yuval Yarom</author>
+<author>Mike Hamburg</author>
+<title>Meltdown</title>
+<journal>meltdownattack.com</journal>
+<ee type="oa">https://meltdownattack.com/meltdown.pdf</ee>
+<year>2018</year>
+</article>
+<book mdate="2019-05-27" key="tr/acm/CS2013">
+<title>Computer Science Curricula 2013</title>
+<publisher>ACM Press and IEEE Computer Society Press</publisher>
+<year>2013</year>
+<ee>https://doi.org/10.1145/2534860</ee>
+<isbn>978-1-4503-2309-3</isbn>
+</book>
+<article mdate="2019-10-25" key="tr/gte/TR-0263-08-94-165" publtype="informal">
+
+<title>An Evaluation of Object-Oriented DBMS Developments: 1994 Edition.</title>
+<journal>GTE Laboratories Incorporated</journal>
+<volume>TR-0263-08-94-165</volume>
+<month>August</month>
+<year>1994</year>
+<url>db/journals/gtelab/index.html#TR-0263-08-94-165</url>
+</article><article mdate="2019-10-25" key="tr/gte/TR-0222-10-92-165" publtype="informal">
+<author>Michael L. Brodie</author>
+<author>Michael Stonebraker</author>
+<title>DARWIN: On the Incremental Migration of Legacy Information Systems</title>
+<journal>GTE Laboratories Incorporated</journal>
+<volume>TR-0222-10-92-165</volume>
+<month>March</month>
+<year>1993</year>
+<url>db/journals/gtelab/index.html#TR-0222-10-92-165</url>
+<note>This report is also available as a Technical Memorandum of Electronics Research Laboratory, College of Engineering, University of California, Berkeley.</note>
+</article>
+<article mdate="2019-10-25" key="tr/gte/TR-0174-12-91-165" publtype="informal">
+<author>Mark F. Hornick</author>
+<author>Joe D. Morrison</author>
+<author>Farshad Nayeri</author>
+<title>Integrating Heterogeneous, Autonomous, Distributed Applications Using the DOM Prototype.</title>
+<journal>GTE Laboratories Incorporated</journal>
+<volume>TR-0174-12-91-165</volume>
+<month>December</month>
+<year>1991</year>
+<url>db/journals/gtelab/index.html#TR-0174-12-91-165</url>
+</article><article mdate="2019-10-25" key="tr/gte/TM-0149-06-89-165" publtype="informal">
+<author>Frank Manola</author>
+<title>Object Model Capabilities For Distributed Object Management.</title>
+<journal>GTE Laboratories Incorporated</journal>
+<volume>TM-0149-06-89-165</volume>
+<month>June</month>
+<year>1989</year>
+<url>db/journals/gtelab/index.html#TM-0149-06-89-165</url>
+</article><article mdate="2019-10-25" key="tr/gte/TR-0310-11-95-165" publtype="informal">
+<author>Frank Manola</author>
+<title>Integrating Object-Oriented Applications and Middleware with Relational Databases.</title>
+<journal>GTE Laboratories Incorporated</journal>
+<volume>TR-0310-11-95-165</volume>
+<month>November</month>
+<year>1995</year>
+<url>db/journals/gtelab/index.html#TR-0310-11-95-165</url>
+</article><article mdate="2019-10-25" key="tr/gte/TR-0146-06-91-165" publtype="informal">
+<author>Alejandro P. Buchmann</author>
+<author>M. Tamer &Ouml;zsu</author>
+<author>Dimitrios Georgakopoulos</author>
+<title>Towards a Transaction Management System for DOM.</title>
+<journal>GTE Laboratories Incorporated</journal>
+<volume>TR-0146-06-91-165</volume>
+<month>June</month>
+<year>1991</year>
+<url>db/journals/gtelab/index.html#TR-0146-06-91-165</url>
+</article>
+<article mdate="2017-05-28" key="journals/acta/Saxena96">
+<author>Sanjeev Saxena</author>
+<title>Parallel Integer Sorting and Simulation Amongst CRCW Models.</title>
+<pages>607-619</pages>
+<year>1996</year>
+<volume>33</volume>
+<journal>Acta Inf.</journal>
+<number>7</number>
+<url>db/journals/acta/acta33.html#Saxena96</url>
+<ee>https://doi.org/10.1007/BF03036466</ee>
+</article>
+<article mdate="2017-05-28" key="journals/acta/Simon83">
+<author>Hans Ulrich Simon</author>
+<title>Pattern Matching in Trees and Nets.</title>
+<pages>227-248</pages>
+<year>1983</year>
+<volume>20</volume>
+<journal>Acta Inf.</journal>
+<url>db/journals/acta/acta20.html#Simon83</url>
+<ee>https://doi.org/10.1007/BF01257084</ee>
+</article><article mdate="2017-05-28" key="journals/acta/GoodmanS83">
+	<author>Nathan Goodman</author>
+	<author>Oded Shmueli</author>
+	<title>NP-complete Problems Simplified on Tree Schemas.</title>
+	<pages>171-178</pages>
+	<year>1983</year>
+	<volume>20</volume>
+	<journal>Acta Inf.</journal>
+	<url>db/journals/acta/acta20.html#GoodmanS83</url>
+	<ee>https://doi.org/10.1007/BF00289414</ee>
+</article>
+<article mdate="2017-05-28" key="journals/acta/Schonhage77">
+<author>Arnold Sch&ouml;nhage</author>
+<title>Schnelle Multiplikation von Polynomen &uuml;ber K&ouml;rpern der Charakteristik 2.</title>
+<journal>Acta Inf.</journal>
+<volume>7</volume>
+<year>" "</year>
+<pages>395-398</pages>
+<url>db/journals/acta/acta7.html#Schonhage77</url>
+<ee>https://doi.org/10.1007/BF00289470</ee>
+</article>
+<book key="reference/assisted/2012" mdate="2012-03-28">
+	<editor>Juan Carlos Augusto</editor>
+	<editor>Michael Huch</editor>
+	<editor>Achilles Kameas</editor>
+	<editor>Julie Maitland</editor>
+	<editor>Paul J. McCullagh</editor>
+	<editor>Jean Roberts</editor>
+	<editor>Andrew Sixsmith</editor>
+	<editor>Reiner Wichert</editor>
+	<title>
+	Handbook of Ambient Assisted Living - Technology for Healthcare, Rehabilitation and Well-being
+	</title>
+	<year>2012</year>
+	<publisher>IOS Press</publisher>
+	<volume>11</volume>
+	<booktitle>Handbook of Ambient Assisted Living</booktitle>
+	<isbn>978-1-60750-836-6</isbn>
+	<ee>
+	http://www.booksonline.iospress.nl/Content/View.aspx?piid=26497
+	</ee>
+	<series href="db/series/aise/index.html">Ambient Intelligence and Smart Environments</series>
+	<url>db/reference/assisted/assisted2012.html</url>
+</book>
+<book key="books/daglib/0032126" mdate="2017-05-16">
+<author>Radu C. Calinescu</author>
+<title>Architecture-Independent Loop Parallelisation.</title>
+<pages>I-XVIII, 1-172</pages>
+<publisher>Springer</publisher>
+<year>2000</year>
+<pages>1-172</pages>
+<series>Distinguished dissertations</series>
+<isbn>978-1-4471-1197-9</isbn>
+<ee>https://doi.org/10.1007/978-1-4471-0763-7</ee>
+<ee>http://d-nb.info/958556881</ee>
+</book>
+
+<www key="homepages/m/AtsuyukiMorishima" mdate="2018-02-22">
+<author>Atsuyuki Morishima</author>
+<title>Home Page</title>
+<url>http://www.kc.tsukuba.ac.jp/~mori/index.html</url>
+<note>&#x68EE;&#x5D8B;&#x539A;&#x884C;</note>
+</www>
+
+<www mdate="2020-05-20" key="homepages/l/FredericLoulergue">
+<author>Fr&eacute;d&eacute;ric Loulergue</author>
+<title>Home Page</title>
+<url>http://f.loulergue.free.fr/</url>
+<url>https://zbmath.org/authors/?q=ai:loulergue.frederic</url>
+<url>https://orcid.org/0000-0001-9301-7829</url>
+</www><www mdate="2020-12-31" key="homepages/l/HuaLu">
+<author>Hua Lu 0001</author>
+<title>Home Page</title>
+<note type="affiliation">Roskilde University, Denmark</note>
+<note label="former" type="affiliation">Department of Computer Science, Aalborg University, Denmark</note>
+<note label="PhD 2007" type="affiliation">National University of Singapore, School of Computing, Singapore</note>
+<url>http://luhua.ruc.dk/</url>
+<url>https://scholar.google.com/citations?user=h1mExmcAAAAJ</url>
+<url>https://orcid.org/0000-0003-1199-6678</url>
+</www>
+<www mdate="2016-09-27" key="homepages/l/GuoqiangLi7">
+<author>Guoqiang Li 0007</author>
+<title>Home Page</title>
+<note type="affiliation">Norwegian University of Science and Technology, Gj&oslash;vik, Norway</note>
+<url>http://nislab.no/people/norwegian_information_security_laboratory/phd_candidates/guoqiang_li</url>
+</www>
+<www mdate="2020-07-23" key="homepages/l/BarbaraLiskov">
+<author>Barbara Liskov</author>
+<author>Barbara H. Liskov</author>
+<title>Home Page</title>
+<note type="affiliation">Massachusetts Institute of Technology</note>
+<note label="2008" type="award">Turing Award</note>
+<note label="2018" type="award">Computer Pioneer Award</note>
+<note label="2008" type="award">Programming Languages Achievement Award</note>
+<note label="2004" type="award">IEEE John von Neumann Medal</note>
+<note type="award">National Inventors Hall of Fame</note>
+<url>http://www.pmg.lcs.mit.edu/~liskov/</url>
+<url>https://dl.acm.org/profile/81100323833</url>
+<url>https://zbmath.org/authors/?q=ai:liskov.barbara-h</url>
+<url>https://mathgenealogy.org/id.php?id=61932</url>
+<url>https://en.wikipedia.org/wiki/Barbara_Liskov</url>
+<url>https://www.wikidata.org/entity/Q16080922</url>
+<url>https://www.scopus.com/authid/detail.uri?authorId=7003295036</url>
+<url>http://isni.org/isni/0000000117605450</url>
+<url>https://viaf.org/viaf/44337197</url>
+<url>https://id.loc.gov/authorities/names/n81090977</url>
+<url>https://d-nb.info/gnd/1069447846</url>
+<url>http://amturing.acm.org/award_winners/liskov_1108679.cfm</url>
+</www>
+
+<www mdate="2009-06-09" key="homepages/29/523">
+<author>S. A. Abbasi</author>
+<title>Home Page</title>
+</www>
+<www mdate="2009-06-08" key="homepages/29/132">
+<author>Ivan Bradaric</author>
+<title>Home Page</title>
+</www>
+<www mdate="2010-01-21" key="homepages/29/7763">
+<author>Jin-Ping Li</author>
+<title>Home Page</title>
+</www>
+
+</dblp>
