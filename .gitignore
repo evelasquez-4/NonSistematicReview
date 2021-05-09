@@ -21,3 +21,92 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+Last login: Sun May  9 14:14:31 on ttys001
+
+The default interactive shell is now zsh.
+To update your account to use zsh, please run `chsh -s /bin/zsh`.
+For more details, please visit https://support.apple.com/kb/HT208050.
+ravens-MacBook-Air:slrApp raven$ ls
+HELP.md		build		data		gradle		gradlew.bat	libs		src
+bin		build.gradle	db		gradlew		indexes		settings.gradle	tables_mapping
+ravens-MacBook-Air:slrApp raven$ ls -la
+total 72
+drwxr-xr-x@ 21 raven  staff   672 Mar 28 12:02 .
+drwxr-xr-x@  5 raven  staff   160 Apr  3 17:14 ..
+-rw-r--r--   1 raven  staff  1291 Apr 30 23:56 .classpath
+-rw-r--r--   1 raven  staff   444 Mar 22 19:56 .gitignore
+drwxr-xr-x   7 raven  staff   224 Mar 22 19:56 .gradle
+-rw-r--r--   1 raven  staff  1201 Mar 22 20:13 .project
+drwxr-xr-x   9 raven  staff   288 Apr 30 23:56 .settings
+-rw-r--r--   1 raven  staff  2642 Mar 22 19:56 HELP.md
+drwxr-xr-x   4 raven  staff   128 Mar 22 19:56 bin
+drwxr-xr-x   8 raven  staff   256 Mar 28 12:03 build
+-rw-r--r--@  1 raven  staff  2961 Apr 30 23:56 build.gradle
+drwxr-xr-x@  4 raven  staff   128 Mar 28 11:28 data
+drwxr-xr-x   3 raven  staff    96 Mar 28 11:32 db
+drwxr-xr-x   3 raven  staff    96 Mar 22 19:56 gradle
+-rwxr-xr-x   1 raven  staff  5766 Mar 22 19:56 gradlew
+-rw-r--r--   1 raven  staff  2763 Mar 22 19:56 gradlew.bat
+drwxr-xr-x   6 raven  staff   192 May  9 02:32 indexes
+drwxr-xr-x   3 raven  staff    96 Mar 22 21:27 libs
+-rw-r--r--   1 raven  staff    28 Mar 22 19:56 settings.gradle
+drwxr-xr-x   4 raven  staff   128 Mar 22 19:56 src
+drwxr-xr-x@  3 raven  staff    96 Apr  3 18:46 tables_mapping
+ravens-MacBook-Air:slrApp raven$ vim .gitignore 
+ravens-MacBook-Air:slrApp raven$ vim .gitignore 
+ravens-MacBook-Air:slrApp raven$ git init
+Initialized empty Git repository in /Users/raven/Documents/workspace-spring-tool-suite-4-4.10.0.RELEASE/slrApp/.git/
+ravens-MacBook-Air:slrApp raven$ vim .gitignore 
+
+
+
+
+
+
+
+
+
+
+
+
+
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+/indexes/*
