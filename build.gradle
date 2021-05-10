@@ -1,0 +1,73 @@
+plugins {
+	id 'org.springframework.boot' version '2.4.4'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'java'
+	id 'war'
+}
+
+group = 'com.slr'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-web-services'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	runtimeOnly 'org.postgresql:postgresql'
+	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.batch:spring-batch-test'
+	
+	
+	// https://mvnrepository.com/artifact/org.postgresql/postgresql
+	implementation group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
+	
+	
+	compile fileTree(include: ['*.jar'], dir: 'libs')    
+    
+    // https://mvnrepository.com/artifact/com.vladmihalcea/hibernate-types-52
+	implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.9.12'
+    
+    
+    // https://mvnrepository.com/artifact/org.hibernate/hibernate-core
+	//compile group: 'org.hibernate', name: 'hibernate-core', version: '5.4.5.Final'
+	
+	// https://mvnrepository.com/artifact/org.hibernate/hibernate-core
+	implementation group: 'org.hibernate', name: 'hibernate-core', version: '5.4.30.Final'
+	//implementation group: 'org.hibernate', name: 'hibernate-core', version: '5.4.12.Final'
+	
+	// https://mvnrepository.com/artifact/org.hibernate/hibernate-entitymanager
+	compile group: 'org.hibernate', name: 'hibernate-entitymanager', version: '5.4.6.Final'
+	
+	// https://mvnrepository.com/artifact/org.hibernate/hibernate-validator
+	compile group: 'org.hibernate', name: 'hibernate-validator', version: '6.1.0.Final'
+	
+	// https://mvnrepository.com/artifact/org.hibernate.javax.persistence/hibernate-jpa-2.1-api
+	//compile group: 'org.hibernate.javax.persistence', name: 'hibernate-jpa-2.1-api', version: '1.0.2.Final'
+	
+	
+	// https://mvnrepository.com/artifact/org.hibernate/hibernate-search-orm
+	implementation group: 'org.hibernate', name: 'hibernate-search-orm', version: '5.11.8.Final'
+
+	
+    // https://mvnrepository.com/artifact/org.json/json
+    implementation group: 'org.json', name: 'json', version: '20201115'
+    
+    // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
+	//compile group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.12.0'
+	compile group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.5.0'
+	
+}
+
+test {
+	useJUnitPlatform()
+}
