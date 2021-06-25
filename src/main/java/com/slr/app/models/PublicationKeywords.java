@@ -14,6 +14,8 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.hibernate.search.annotations.IndexedEmbedded;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 /**
@@ -32,6 +34,7 @@ public class PublicationKeywords implements java.io.Serializable {
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "keyword_id")
+	@IndexedEmbedded(depth = 1, prefix = "keyword_")
 	private Keywords keywords;
 	
 	@ManyToOne(fetch = FetchType.LAZY)

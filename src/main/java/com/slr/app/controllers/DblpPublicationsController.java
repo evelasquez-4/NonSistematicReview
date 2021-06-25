@@ -50,4 +50,14 @@ public class DblpPublicationsController {
 		
 	}
 	
+	@PostMapping("/divided_rows/{id}")
+	public void parseById(@RequestBody(required = true) Map<String, String> values,@PathVariable("id") Long id) throws ParseException {
+		
+		String state = values.containsKey("updated_state") ? values.get("updated_state") : "";
+		int limit  = 0;
+			
+		this.dblp_service.insertIntoAuthorPublications(id.toString(), state, limit);
+		
+	}
+	
 }

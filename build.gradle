@@ -56,8 +56,16 @@ dependencies {
 	
 	
 	// https://mvnrepository.com/artifact/org.hibernate/hibernate-search-orm
-	implementation group: 'org.hibernate', name: 'hibernate-search-orm', version: '5.11.8.Final'
-
+	implementation group: 'org.hibernate', name: 'hibernate-search-orm', version: '5.11.9.Final'
+	implementation group: 'org.hibernate.search', name: 'hibernate-search-mapper-orm', version: '6.0.5.Final'
+	
+	
+	// https://mvnrepository.com/artifact/org.hibernate/hibernate-search-elasticsearch
+	implementation group: 'org.hibernate', name: 'hibernate-search-elasticsearch', version: '5.11.9.Final'
+	
+	// https://mvnrepository.com/artifact/org.hibernate.search/hibernate-search-backend-lucene
+	implementation group: 'org.hibernate.search', name: 'hibernate-search-backend-lucene', version: '6.0.5.Final'
+	
 	
     // https://mvnrepository.com/artifact/org.json/json
     implementation group: 'org.json', name: 'json', version: '20201115'
@@ -65,6 +73,14 @@ dependencies {
     // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
 	//compile group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.12.0'
 	compile group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.5.0'
+	
+	// https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java
+	compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
+	
+	// https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-chrome-driver
+	compile group: 'org.seleniumhq.selenium', name: 'selenium-chrome-driver', version: '3.141.59'
+	// https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-firefox-driver
+	compile group: 'org.seleniumhq.selenium', name: 'selenium-firefox-driver', version: '3.141.59'
 	
 }
 

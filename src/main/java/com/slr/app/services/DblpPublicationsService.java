@@ -84,6 +84,14 @@ public class DblpPublicationsService {
 			throw new RuntimeException("DblpPublication id :"+id+" does not exists.");
 	}
 	
+	public DblpPublications findByIdStateGroup(Long id,String state, int group){
+		Optional<DblpPublications> res = this.dblp_repo.findByIdStateGroup(id.intValue(),state,group);
+		if(res.isPresent()) 
+			return res.get();
+		else	
+			throw new RuntimeException("DblpPublication id :"+id+" does not exists.");
+	}
+	
 	public DblpPublications save(DblpPublications publication) {
 		return this.dblp_repo.saveAndFlush(publication);
 	}
@@ -93,7 +101,7 @@ public class DblpPublicationsService {
 	{
 		int grupo = this.configuration.getValidateConfiguration("active").getGroupState();
 		int inserts = 0;
-		
+		//System.setProperty("entityExpansionLimit", "10000000");
 		if(xmlFileName.isEmpty()  || dtdFileName.isEmpty())
 			 throw new NullPointerException("Usage: java  <dblp-xml-file> <dblp-dtd-file>");
 	         
@@ -184,44 +192,56 @@ public class DblpPublicationsService {
 		String res = "";
 		List<DblpPublications> dblp = this.index_service.findIndexedDblpPublicationByCrossref(dblpKey);
 		
-		if(dblp.isEmpty())
-			throw new RuntimeException("function getProceedingReference() :"+dblpKey+" ,not found reference");
-		
-		switch (dblp.get(0).getDocType()) {
-		case "incollection":
-			res = "incollection"; break;
-		case "article":
-			res = "journal_editorial"; break;
-		case "inproceedings":
-			res = "conference_editorial"; break;
-		default:
-			System.err.println("Dblp proceeding reference error: "+dblpKey+" -> "+dblp.get(0).getDocType());
-			break;
-		}
+		if(!dblp.isEmpty()) {
+			//throw new RuntimeException("function getProceedingReference() :"+dblpKey+" ,not found reference");
+			switch (dblp.get(0).getDocType()) {
+			case "incollection":
+				res = "incollection"; break;
+			case "article":
+				res = "journal_editorial"; break;
+			case "inproceedings":
+				res = "conference_editorial"; break;
+			default:
+				System.err.println("Dblp proceeding reference error: "+dblpKey+" -> "+dblp.get(0).getDocType());
+				break;
+			}
+		}else res = null;
 		
 		return res;
 	}
 	
 	/*
 	 * llamada a funcion para insertar en slr.publications y slr.author_publications
+	 * exception: limit = 0 -> update by publication id, where 'doc_type' id the that id 
 	 */
 	@Transactional
 	public void insertIntoAuthorPublications(String doc_type, String state, int limit) throws ParseException  {
 		int group = this.configuration.getValidateConfiguration("active").getGroupState();
+		List<DblpPublications> dblpPublications = new ArrayList<DblpPublications>();
 		
-		List<DblpPublications> dblpPublications = this.dblp_repo.getDblpPublicationsByTypeStateGroup(doc_type, state, group, limit) ;
+		if(limit > 0)
+			dblpPublications = this.dblp_repo.getDblpPublicationsByTypeStateGroup(doc_type, state, group, limit) ;
+		else
+			dblpPublications.add(findByIdStateGroup(Long.valueOf(doc_type),state, group));
+		
 		int i = 0;
 		
 		for (DblpPublications dblp : dblpPublications) 
 		{
 			List<Authors> authors = new ArrayList<Authors>();
-			//search authors in slr.authors
-			if(!dblp.getAuthor().isEmpty()) 
-				authors  = this.author_service.searchIndexedAuthors(dblp.getAuthor()) ;
-			
 			//inserting in slr.publications
 			Publications publication = this.publication_service.saveFromDblpPublication(dblp);
 			this.entityManager.persist(publication);
+			
+			//search authors in slr.authors
+			if(!dblp.getAuthor().isEmpty()) 
+				authors  = this.author_service.searchIndexedAuthors(dblp.getAuthor()) ;
+			else {
+				//inserting in slr.author_publications no authors
+				this.entityManager.persist(
+						new AuthorPublications(0, null, publication, null, new Date()) );
+			}
+			
 			
 			//inserting in slr.author_publications
 			for (int j = 0; j < authors.size(); j++) {

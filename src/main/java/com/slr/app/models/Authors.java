@@ -2,7 +2,9 @@ package com.slr.app.models;
 // Generated Mar 27, 2021 5:30:49 PM by Hibernate Tools 4.3.5.Final
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,6 +14,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -19,12 +22,14 @@ import javax.persistence.TemporalType;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.search.annotations.Analyze;
+import org.hibernate.search.annotations.ContainedIn;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Store;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.vladmihalcea.hibernate.type.array.ListArrayType;
 
 /**
@@ -49,21 +54,26 @@ public class Authors implements java.io.Serializable {
 	private long id;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "department_id")
+	@JoinColumn(name = "department_id",referencedColumnName = "id")
+	//@IndexedEmbedded(depth = 1, prefix = "department_")
 	private Departments departments;
+	
 	private String key;
 	private String pid;
+	@Field
 	private String position;
+	@Field
 	private String skills;
+	@Field
 	private String disciplines;
 	
 	@Column(name = "names", nullable = false)
-	@Field(name = "names",index=Index.YES, analyze=Analyze.NO, store=Store.YES)
+	@Field(name = "names",index=Index.YES, analyze=Analyze.YES, store=Store.NO)
 	private String names;
 	
 	@Type(type = "list-array")
 	@Column(	name = "homonyns",	columnDefinition = "text[]" )
-	@Field(name = "homonyns",index = Index.YES, analyze = Analyze.NO, store = Store.YES)
+	@Field(name = "homonyns",index = Index.YES, analyze = Analyze.YES, store = Store.NO)
 	@IndexedEmbedded
 	private List<String> homonyns;
 	
@@ -82,10 +92,18 @@ public class Authors implements java.io.Serializable {
 	@Column(	name = "awards",	columnDefinition = "text[]" )
 	private List<String> awards;
 	
+	@Field
 	private String affiliation;
 
 	@Column(name = "insert_group")
 	private int insertGroup;
+	
+	@Column(name = "publications_updated", nullable = true)
+	private boolean publicationsUpdated;
+	
+	@ContainedIn
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "authors")
+	private Set<AuthorPublications> authorPublicationses = new HashSet<AuthorPublications>(0);
 	
 	public Authors() {
 	}
@@ -114,6 +132,31 @@ public class Authors implements java.io.Serializable {
 		this.awards = awards;
 		this.affiliation = affiliation;
 		this.insertGroup = group;
+		this.publicationsUpdated = false;
+	}
+	
+	public Authors(long id, Departments departments, String key, String pid, String position, String skills,
+			String disciplines, String names, List<String> homonyns, List<String> urls, List<String> cites,
+			Date createdAt, List<String> awards, String affiliation, String mdate, Integer insertGroup,
+			Boolean publicationsUpdated, Set<AuthorPublications> authorPublicationses) {
+		this.id = id;
+		this.departments = departments;
+		this.key = key;
+		this.pid = pid;
+		this.position = position;
+		this.skills = skills;
+		this.disciplines = disciplines;
+		this.names = names;
+		this.homonyns = homonyns;
+		this.urls = urls;
+		this.cites = cites;
+		this.createdAt = createdAt;
+		this.awards = awards;
+		this.affiliation = affiliation;
+		this.mdate = mdate;
+		this.insertGroup = insertGroup;
+		this.publicationsUpdated = publicationsUpdated;
+		this.authorPublicationses = authorPublicationses;
 	}
 
 	public long getId() {
@@ -259,4 +302,20 @@ public class Authors implements java.io.Serializable {
 		this.insertGroup = group;
 	}
 
+	public boolean isPublicationsUpdated() {
+		return publicationsUpdated;
+	}
+
+	public void setPublicationsUpdated(boolean publicationsUpdated) {
+		this.publicationsUpdated = publicationsUpdated;
+	}
+	
+	@JsonManagedReference
+	public Set<AuthorPublications> getAuthorPublicationses() {
+		return this.authorPublicationses;
+	}
+
+	public void setAuthorPublicationses(Set<AuthorPublications> authorPublicationses) {
+		this.authorPublicationses = authorPublicationses;
+	}
 }
