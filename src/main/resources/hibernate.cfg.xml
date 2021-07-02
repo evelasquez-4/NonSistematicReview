@@ -28,10 +28,25 @@
 		<property name="hibernate.cache.use_second_level_cache">false</property>
 		
 		<mapping class="com.slr.app.models.Authors"/>
-		<mapping class="com.slr.app.models.AuthorPublications"/>
-		<mapping class="com.slr.app.models.DblpPublications"/>
+		<mapping class="com.slr.app.models.AuthorPublications"/>		
+		<mapping class="com.slr.app.models.Books"/>
+		<mapping class="com.slr.app.models.BookChapters"/>
+		<mapping class="com.slr.app.models.Conferences"/>
+		<mapping class="com.slr.app.models.ConferenceEditorials"/>
+		<mapping class="com.slr.app.models.ConferencePapers"/>
 		<mapping class="com.slr.app.models.Countries"/>
+		<mapping class="com.slr.app.models.Departments"/>
 		
+		<mapping class="com.slr.app.models.Editions"/>
+		<mapping class="com.slr.app.models.Institutions"/>
+		<mapping class="com.slr.app.models.Journals"/>
+		<mapping class="com.slr.app.models.JournalEditorials"/>
+		<mapping class="com.slr.app.models.JournalPapers"/>
+		<mapping class="com.slr.app.models.Keywords"/>
+		<mapping class="com.slr.app.models.Publications"/>
+		<mapping class="com.slr.app.models.PublicationKeywords"/>
+		<mapping class="com.slr.app.models.Publishers"/>	
+		<mapping class="com.slr.app.models.DblpPublications"/>
 		
 		 <!-- dbcp connection pool configuration -->
 <!--         <property name="hibernate.dbcp.initialSize">5</property> -->

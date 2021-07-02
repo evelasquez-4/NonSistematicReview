@@ -39,7 +39,7 @@ public class Countries implements java.io.Serializable {
 	private long id;
 	
 	@Column(name = "country_name", nullable = false)
-	@Field(index=Index.YES, analyze=Analyze.YES, store=Store.YES)
+	@Field(index=Index.YES, analyze=Analyze.YES, store=Store.NO)
 	private String countryName;
 	
 	private String code;

@@ -1,14 +1,17 @@
 package com.slr.app.models;
-// Generated Apr 3, 2021 6:46:22 PM by Hibernate Tools 4.3.5.Final
+// Generated Jun 22, 2021 11:00:33 PM by Hibernate Tools 4.3.5.Final
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -36,6 +39,8 @@ public class Authors implements java.io.Serializable {
 	private String affiliation;
 	private String mdate;
 	private Integer insertGroup;
+	private Boolean publicationsUpdated;
+	private Set<AuthorPublications> authorPublicationses = new HashSet<AuthorPublications>(0);
 
 	public Authors() {
 	}
@@ -47,7 +52,8 @@ public class Authors implements java.io.Serializable {
 
 	public Authors(long id, Departments departments, String key, String pid, String position, String skills,
 			String disciplines, String names, Serializable homonyns, Serializable urls, Serializable cites,
-			Date createdAt, Serializable awards, String affiliation, String mdate, Integer insertGroup) {
+			Date createdAt, Serializable awards, String affiliation, String mdate, Integer insertGroup,
+			Boolean publicationsUpdated, Set<AuthorPublications> authorPublicationses) {
 		this.id = id;
 		this.departments = departments;
 		this.key = key;
@@ -64,6 +70,8 @@ public class Authors implements java.io.Serializable {
 		this.affiliation = affiliation;
 		this.mdate = mdate;
 		this.insertGroup = insertGroup;
+		this.publicationsUpdated = publicationsUpdated;
+		this.authorPublicationses = authorPublicationses;
 	}
 
 	@Id
@@ -212,6 +220,24 @@ public class Authors implements java.io.Serializable {
 
 	public void setInsertGroup(Integer insertGroup) {
 		this.insertGroup = insertGroup;
+	}
+
+	@Column(name = "publications_updated")
+	public Boolean getPublicationsUpdated() {
+		return this.publicationsUpdated;
+	}
+
+	public void setPublicationsUpdated(Boolean publicationsUpdated) {
+		this.publicationsUpdated = publicationsUpdated;
+	}
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "authors")
+	public Set<AuthorPublications> getAuthorPublicationses() {
+		return this.authorPublicationses;
+	}
+
+	public void setAuthorPublicationses(Set<AuthorPublications> authorPublicationses) {
+		this.authorPublicationses = authorPublicationses;
 	}
 
 }

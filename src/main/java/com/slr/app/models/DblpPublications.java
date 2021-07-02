@@ -45,7 +45,7 @@ public class DblpPublications{
 	//@GeneratedValue(strategy = GenerationType.IDENTITY)
 	
 	@Column(name = "key_dblp", length = 250)
-	@Field(name = "keydblp",index=Index.YES, analyze=Analyze.NO, store=Store.YES)
+	@Field(name = "keydblp",index=Index.YES, analyze=Analyze.NO, store=Store.NO)
 	private String keyDblp;
 	
 	@Type(type = "list-array")
@@ -56,6 +56,7 @@ public class DblpPublications{
 //	@Column(	name = "editor",	columnDefinition = "text[]" ) 
 //	private String[] editor;
 
+	
 	private String title;
 	private String bookTitle;
 	private String pages;

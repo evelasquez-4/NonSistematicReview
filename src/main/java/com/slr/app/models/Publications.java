@@ -18,6 +18,21 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
+import org.apache.lucene.analysis.snowball.SnowballPorterFilterFactory;
+import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
+import org.hibernate.search.annotations.Analyze;
+import org.hibernate.search.annotations.Analyzer;
+import org.hibernate.search.annotations.AnalyzerDef;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Index;
+import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.NumericField;
+import org.hibernate.search.annotations.Parameter;
+import org.hibernate.search.annotations.Store;
+import org.hibernate.search.annotations.TokenFilterDef;
+import org.hibernate.search.annotations.TokenizerDef;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -28,6 +43,16 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 @Entity
 @Table(name = "publications", schema = "slr")
 @JsonIgnoreProperties({"hibernateLazyinitializer","handler"})
+@Indexed
+@AnalyzerDef(name = "publicationanalyzer",
+tokenizer = @TokenizerDef(factory = StandardTokenizerFactory.class),
+filters = {
+	    @TokenFilterDef(factory = LowerCaseFilterFactory.class),
+	    @TokenFilterDef(factory = SnowballPorterFilterFactory.class, params = {
+	    @Parameter(name = "language", value = "English")
+	    })
+})
+
 public class Publications implements java.io.Serializable {
 	
 	private static final long serialVersionUID = 1L;
@@ -40,16 +65,33 @@ public class Publications implements java.io.Serializable {
 	private long id;
 
 	@Column(name = "abstract",nullable = true)
+	@Field(name="abstract", index = Index.YES,analyze = Analyze.YES,store = Store.NO)
+	@Analyzer(definition = "publicationanalyzer")
 	private String abstract_;
 	
+	@Field(name="title", index = Index.YES,analyze = Analyze.YES,store = Store.NO)
+	@Analyzer(definition = "publicationanalyzer")
 	private String title;
+	
 	private String dblpKey;
+	
+	@Field(name="year")
+	@NumericField
 	private Integer year;
+	
 	private String url;
+	
+	@Field
 	private String ee;
+	
 	private String note;
 	private String crossref;
+	
+	//register date in dblp
+	@Field(name="mdate")
+	@NumericField
 	private Date mdate;
+	
 	private String updatedState;
 	private String docType;
 	
@@ -58,6 +100,7 @@ public class Publications implements java.io.Serializable {
 	private Date regDate;
 	
 	@Column(name="rg_info")
+	@Field
 	private String rgInfo;
 	
 	@Column(name="proceeding_info")
@@ -399,22 +442,27 @@ public class Publications implements java.io.Serializable {
 	}
 
 	//funcion que extrae DOI de una publicacion
-	public String extractDOI()
-	{
-		String res = getEe();
-		String doi = "https://doi.org/";
-			
-		if(!res.isEmpty())
-		{
-			if(res.contains(doi))
-			{
-				res = res.substring(doi.length(), res.length());
-			}else
-				res = "";
+	public String extractDOI(){
+		String doi = getEe();
+		String res = "";
+		if(doi.contains("doi.org/") ) {
+			res = doi.substring(0,doi.indexOf("doi.org/"));
+			res = doi.replace(res+"doi.org/", "").trim();
 		}
-		return res;
+		 return res;
 	}
 	
+	public boolean hasDoi() {
+		return getEe().contains("doi.org/");
+	}
+	
+	public boolean hasIsbn() {
+		String type = getDocType();
+		if(type == "book" || type == "incollection") {
+			
+		}
+		return false;
+	}
 	@Override
 	public String toString() {
 

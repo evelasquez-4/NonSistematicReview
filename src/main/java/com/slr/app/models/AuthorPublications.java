@@ -33,12 +33,13 @@ public class AuthorPublications implements java.io.Serializable {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private long id;
 	
+	//@IndexedEmbedded(depth = 1, prefix = "author_", targetElement = Authors.class)
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "author_id")
+	@JoinColumn(name = "author_id", referencedColumnName = "id")
 	private Authors authors;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "publication_id")
+	@JoinColumn(name = "publication_id",referencedColumnName = "id")
 	private Publications publications;
 	
 	@Column(name = "herarchy")

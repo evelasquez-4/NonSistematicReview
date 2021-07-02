@@ -28,7 +28,6 @@ public class AuthorPublicationsService {
 	private AuthorPublicationsRepository author_publications;
 	@Autowired
 	private PublicationsServices publication_service;
-
 	@Autowired
 	private SlrHibernateLuceneIndex index_service;
 	
@@ -41,6 +40,10 @@ public class AuthorPublicationsService {
 			
 		return res.get();
 	}
+	
+	public List<AuthorPublications> findByPublicationId(Long publication_id) {
+		return this.author_publications.findByPublicationId(publication_id);
+	} 
 	
 	public List<AuthorPublications> saveAuthorPublications(Publications publications, List<Authors> authors) {
 		List<AuthorPublications> res = new ArrayList<AuthorPublications>();

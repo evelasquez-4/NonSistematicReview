@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Column;
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -15,6 +16,8 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.hibernate.search.annotations.Field;
+
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 /**
@@ -22,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
  */
 @Entity
 @Table(name = "keywords", schema = "slr")
+@Embeddable
 public class Keywords implements java.io.Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -31,6 +35,7 @@ public class Keywords implements java.io.Serializable {
 	@Column(name = "id", unique = true, nullable = false)
 	private long id;
 	
+	@Field
 	private String decription;
 	private Date createdAt;
 	

@@ -1,5 +1,5 @@
 package com.slr.app.models;
-// Generated Apr 3, 2021 6:46:22 PM by Hibernate Tools 4.3.5.Final
+// Generated Jun 22, 2021 11:00:33 PM by Hibernate Tools 4.3.5.Final
 
 import java.util.HashSet;
 import java.util.Set;

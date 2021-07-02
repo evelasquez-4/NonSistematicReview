@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.slr.app.helpers.SlrHibernateLuceneIndex;
 import com.slr.app.models.Authors;
+import com.slr.app.models.Publications;
 
 @RestController
 @RequestMapping("/lucene_index")
@@ -45,5 +46,21 @@ public class SlrHibernateLuceneIndexController {
 		return this.index.findAuthorsIndexedByListAuthors(authors);
 	}
 	
+	
+	//start functions to search with hibernate search
+	@GetMapping(value = "/search_publications")
+	public List<Publications> searchInPublications(@RequestBody(required = true) Map<String, String> values) throws Exception{
+		
+		if(values.isEmpty())
+			throw new Exception("Input values to search are null");
+		
+		
+		
+		
+		return this.index.searchPublicationMatchingTitleAbstract(
+				values.get("title"),
+				Integer.valueOf(values.get("limit"))
+				);
+	}
 	
 }

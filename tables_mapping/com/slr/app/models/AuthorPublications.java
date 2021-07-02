@@ -1,5 +1,5 @@
 package com.slr.app.models;
-// Generated Apr 3, 2021 6:46:22 PM by Hibernate Tools 4.3.5.Final
+// Generated Jun 22, 2021 11:00:33 PM by Hibernate Tools 4.3.5.Final
 
 import java.util.Date;
 import javax.persistence.Column;
@@ -20,9 +20,9 @@ import javax.persistence.TemporalType;
 public class AuthorPublications implements java.io.Serializable {
 
 	private long id;
+	private Authors authors;
 	private Publications publications;
 	private Integer herarchy;
-	private Integer authorId;
 	private Date createdAt;
 
 	public AuthorPublications() {
@@ -32,11 +32,11 @@ public class AuthorPublications implements java.io.Serializable {
 		this.id = id;
 	}
 
-	public AuthorPublications(long id, Publications publications, Integer herarchy, Integer authorId, Date createdAt) {
+	public AuthorPublications(long id, Authors authors, Publications publications, Integer herarchy, Date createdAt) {
 		this.id = id;
+		this.authors = authors;
 		this.publications = publications;
 		this.herarchy = herarchy;
-		this.authorId = authorId;
 		this.createdAt = createdAt;
 	}
 
@@ -49,6 +49,16 @@ public class AuthorPublications implements java.io.Serializable {
 
 	public void setId(long id) {
 		this.id = id;
+	}
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "author_id")
+	public Authors getAuthors() {
+		return this.authors;
+	}
+
+	public void setAuthors(Authors authors) {
+		this.authors = authors;
 	}
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -68,15 +78,6 @@ public class AuthorPublications implements java.io.Serializable {
 
 	public void setHerarchy(Integer herarchy) {
 		this.herarchy = herarchy;
-	}
-
-	@Column(name = "author_id")
-	public Integer getAuthorId() {
-		return this.authorId;
-	}
-
-	public void setAuthorId(Integer authorId) {
-		this.authorId = authorId;
 	}
 
 	@Temporal(TemporalType.DATE)

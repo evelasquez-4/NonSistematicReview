@@ -49,8 +49,23 @@ public class AuthorsService {
 		return res.get();
 	}
 	
+	public List<Authors> getAuthorsFromPublicationId(Long publication_id){
+		return this.author_repository.getAuthorsFromPublicationId(publication_id);
+	}
+	
 	public Authors saveAuthors(Authors author) {
 		return this.author_repository.saveAndFlush(author);
+	}
+	
+	public List<Authors> getAuthorsByGroupPublicationUpdated(int grupo, boolean publication_updated, int limit){
+		return this.author_repository.getAuthorsByGroupPublicationUpdated(grupo, publication_updated, limit);
+	}
+	
+	public List<Authors> getAuthorsByGroupPublicationUpdated(boolean publication_updated, int limit){
+		
+		return this.author_repository.getAuthorsByGroupPublicationUpdated(
+				this.configuration_service.getValidateConfiguration("active").getGroupState(), 
+				publication_updated, limit);
 	}
 	
 	public List<Authors> searchIndexedAuthors(List<String> names){

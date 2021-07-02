@@ -14,14 +14,17 @@ import org.hibernate.search.query.dsl.QueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-
+import com.slr.app.models.AuthorPublications;
 import com.slr.app.models.Authors;
 import com.slr.app.models.Countries;
 import com.slr.app.models.DblpPublications;
 import com.slr.app.models.Editions;
+import com.slr.app.models.Publications;
 import com.slr.app.models.Publishers;
 import com.slr.app.services.AuthorsService;
 import com.slr.app.services.SlrConfigurationService;
+
+import javassist.compiler.ast.Keyword;
 
 @Component
 public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefreshedEvent> 
@@ -33,8 +36,7 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 	@Autowired
 	private SlrConfigurationService configuration;
 	
-	
-	
+
 //	@Override
 //	@Transactional
 //	public void onApplicationEvent(ContextRefreshedEvent event) {
@@ -46,7 +48,8 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 //					+ e.toString());
 //		}
 //	}
-	
+
+
 	@Transactional
 	public String indexEntity(String entity) {
 		FullTextEntityManager fullTextEntityManager  = null;
@@ -69,6 +72,12 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 					break;
 				case "publishers":
 					fullTextEntityManager.createIndexer(Publishers.class).startAndWait();
+					break;
+				case "publications":
+					fullTextEntityManager.createIndexer(Publications.class).startAndWait();
+					break;
+				case "author_publications":
+					fullTextEntityManager.createIndexer(AuthorPublications.class).startAndWait();
 					break;
 				default:
 					throw new NullPointerException("Error verificar el nombre de la clase a indexar: "+entity);
@@ -105,13 +114,19 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 					.matching(names)
 					.createQuery();
 			*/
-			org.apache.lucene.search.Query lucene = qb.bool()
-					.should( qb.keyword().onField("names").ignoreFieldBridge().matching(names).createQuery()  )
-					.should( qb.keyword().onField("homonyns").ignoreFieldBridge().matching(names).createQuery() )
+//			org.apache.lucene.search.Query lucene = qb.bool()
+//					.should( qb.keyword().onField("names").ignoreFieldBridge().matching(names).createQuery()  )
+//					.should( qb.keyword().onField("homonyns").ignoreFieldBridge().matching(names).createQuery() )
+//					.createQuery();
+			
+			org.apache.lucene.search.Query lucene = qb
+					.bool()
+//					.should( qb.keyword().onField("names").ignoreFieldBridge().matching(names).createQuery()  )
+					.should( qb.keyword().onField("homonyns").matching(names).createQuery() )
 					.createQuery();
 			
 			javax.persistence.Query fullTextQuery = fullTextEntityManager
-					 .createFullTextQuery(lucene,Authors.class);
+					 .createFullTextQuery(lucene,Authors.class).setMaxResults(50);
 			
 			res = fullTextQuery.getResultList();
 			
@@ -184,7 +199,7 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 					.createQuery();
 			
 			javax.persistence.Query fullTextQuery = fullTextEntityManager
-					 .createFullTextQuery(lucene,Authors.class);
+					 .createFullTextQuery(lucene,DblpPublications.class);
 			
 			res = fullTextQuery.getResultList();
 			
@@ -194,5 +209,36 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 		}
 		entityManager.close();
 		return res;
+	}
+	
+	@Transactional
+	public List<Publications> searchPublicationMatchingTitleAbstract(String phrase, int limit){
+		
+		try {
+			QueryBuilder qb = Search.getFullTextEntityManager(this.entityManager)
+					.getSearchFactory()
+					.buildQueryBuilder()
+					.forEntity(Publications.class).get();
+			
+//			org.apache.lucene.search.Query lucene = qb.bool()
+//					.must(qb.simpleQueryString().onField("title")
+//					.matching(title).createQuery())
+//					.createQuery();
+//			
+//			javax.persistence.Query fullTextQuery = fullTextEntityManager
+//					 .createFullTextQuery(lucene,Publications.class)
+//					 
+//					 .setMaxResults(limit);
+//			
+//			return fullTextQuery.getResultList();
+//			FullTextSession fullTextSession = Search.getFullTextSession(session);
+//			QueryDescriptor query = ElasticsearchQueries.fromQueryString("title:tales");
+//			List<?> result = fullTextSession.createFullTextQuery(query, ComicBook.class).list();
+		
+			this.entityManager.close();
+		}catch (EmptyQueryException e) {
+			System.err.println("function searchPublicationMatchingTitleAbstract(): "+e.getMessage());
+		}
+		return new ArrayList<Publications>();
 	}
 }
