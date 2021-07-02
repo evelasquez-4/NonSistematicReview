@@ -66,14 +66,9 @@ out/
 ### VS Code ###
 .vscode/
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-/indexes/*
-=======
+## local files##
 /indexes
-
->>>>>>> a224b8c... First slr commit, last version
-=======
-/indexes
-
->>>>>>> 03b4e05abce8b336306810f100e967509a92471d
+/elasticsearch
+/db
+/libs
+/tables_mapping
