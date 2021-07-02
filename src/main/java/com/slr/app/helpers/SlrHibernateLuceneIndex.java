@@ -1,16 +1,16 @@
 package com.slr.app.helpers;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 
-import org.hibernate.search.exception.EmptyQueryException;
-import org.hibernate.search.jpa.FullTextEntityManager;
-import org.hibernate.search.jpa.Search;
-import org.hibernate.search.query.dsl.QueryBuilder;
+import org.hibernate.search.engine.search.query.SearchResult;
+import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.orm.massindexing.MassIndexer;
+import org.hibernate.search.mapper.orm.session.SearchSession;
+import org.hibernate.search.util.common.SearchException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,23 +18,79 @@ import com.slr.app.models.AuthorPublications;
 import com.slr.app.models.Authors;
 import com.slr.app.models.Countries;
 import com.slr.app.models.DblpPublications;
-import com.slr.app.models.Editions;
+import com.slr.app.models.PublicationKeywords;
 import com.slr.app.models.Publications;
-import com.slr.app.models.Publishers;
-import com.slr.app.services.AuthorsService;
-import com.slr.app.services.SlrConfigurationService;
-
-import javassist.compiler.ast.Keyword;
 
 @Component
 public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefreshedEvent> 
 {
 	@Autowired
 	private EntityManager entityManager;
-	@Autowired
-	private AuthorsService authors_service;
-	@Autowired
-	private SlrConfigurationService configuration;
+	
+	
+	
+	private Integer limit = 10;
+	
+	@Transactional
+	public String indexEntityElasticSearch(String entity) {
+		SearchSession searchSession = Search.session(entityManager);
+		
+		try {
+			MassIndexer indexer = null;
+			switch (entity) {
+				case "countries":
+					indexer = searchSession.massIndexer( Countries.class ).threadsToLoadObjects( 7 );
+					indexer.startAndWait();
+				break;
+				case "dblp_publications":
+					indexer = searchSession.massIndexer( DblpPublications.class ).threadsToLoadObjects( 7 );
+					indexer.startAndWait();
+				break;
+				case "authors":
+					indexer = searchSession.massIndexer( Authors.class ).threadsToLoadObjects( 7 );
+					indexer.startAndWait();
+				break;
+				
+				case "publications":
+					indexer = searchSession.massIndexer( Publications.class ).threadsToLoadObjects( 7 );
+					indexer.startAndWait();
+				break;
+				
+				case "author_publications":
+					indexer = searchSession.massIndexer( AuthorPublications.class ).threadsToLoadObjects( 7 );
+					indexer.startAndWait();
+				break;
+				
+				case "publication_keywords":
+					indexer = searchSession.massIndexer( PublicationKeywords.class ).threadsToLoadObjects( 7 );
+					indexer.startAndWait();
+				break;
+			}
+			this.entityManager.close();
+		} catch (InterruptedException e) {
+			System.out.println("indexEntityElasticSearch"+e.getMessage());
+		}
+		
+		return entity+" indexed.";
+	}
+	
+	//search indexed country by name
+	public List<Countries> findCountriesByName(String country,Integer ... cant){
+		SearchSession searchSession = Search.session(this.entityManager);
+		try {
+			SearchResult<Countries> result = searchSession.search(Countries.class)
+					.where(c->c. match()
+							.field("countryName")
+							.matching(country)
+					)
+					.fetch( cant.length > 0 ? cant[0].intValue() : limit);
+			this.entityManager.close();
+			return result.hits();
+		}catch(SearchException e){
+			System.out.println("function: findCountriesByName() "+e.getMessage());
+		}
+		return new ArrayList<Countries>();
+	}
 	
 
 //	@Override
@@ -48,49 +104,9 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 //					+ e.toString());
 //		}
 //	}
-
-
-	@Transactional
-	public String indexEntity(String entity) {
-		FullTextEntityManager fullTextEntityManager  = null;
-		try 
-		{
-			fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
-			switch (entity) 
-			{
-				case "authors":
-					fullTextEntityManager.createIndexer(Authors.class).startAndWait();
-				break;
-				case "dblp_publications":
-					fullTextEntityManager.createIndexer(DblpPublications.class).startAndWait();
-				break;
-				case "countries":
-					fullTextEntityManager.createIndexer(Countries.class).startAndWait();
-				break;
-				case "editions":
-					fullTextEntityManager.createIndexer(Editions.class).startAndWait();
-					break;
-				case "publishers":
-					fullTextEntityManager.createIndexer(Publishers.class).startAndWait();
-					break;
-				case "publications":
-					fullTextEntityManager.createIndexer(Publications.class).startAndWait();
-					break;
-				case "author_publications":
-					fullTextEntityManager.createIndexer(AuthorPublications.class).startAndWait();
-					break;
-				default:
-					throw new NullPointerException("Error verificar el nombre de la clase a indexar: "+entity);
-			}
-
-		} catch (InterruptedException e) {
-			System.out.println("Error occured trying to build Hibernate Search indexes "
-					+ e.toString());
-		}
-		return "Successful entity indexed: "+entity;
-	}
 	
-	@SuppressWarnings("unchecked")
+	
+/*
 	@Transactional
 	public List<Authors> findAuthorsIndexedByName(String names){
 		
@@ -101,23 +117,6 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 					.getSearchFactory()
 					.buildQueryBuilder().forEntity(Authors.class).get();
 			
-			/*
-			org.apache.lucene.search.Query lucene = qb.phrase()
-					.withSlop(0)
-					.onField("names")
-					.sentence(names)
-					.createQuery();
-			
-			org.apache.lucene.search.Query lucene = qb
-					.keyword()
-					.onFields("names","homonyns")
-					.matching(names)
-					.createQuery();
-			*/
-//			org.apache.lucene.search.Query lucene = qb.bool()
-//					.should( qb.keyword().onField("names").ignoreFieldBridge().matching(names).createQuery()  )
-//					.should( qb.keyword().onField("homonyns").ignoreFieldBridge().matching(names).createQuery() )
-//					.createQuery();
 			
 			org.apache.lucene.search.Query lucene = qb
 					.bool()
@@ -131,57 +130,49 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 			res = fullTextQuery.getResultList();
 			
 			entityManager.close();
-		}catch (EmptyQueryException  e) {
+		}catch (Exception  e) {
 			System.err.println("function findAuthorsIndexedByName(): "+e.getMessage());
 		}
 		
-		return res;
+		return res; 
 	}
-	
+*/
 	@Transactional
-	public List<Authors> findAuthorsIndexedByListAuthors(List<String> authors){
-		
-		FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(this.entityManager);
-		List<Authors> res = new ArrayList<Authors>();
-		try {
-			QueryBuilder qb = fullTextEntityManager
-					.getSearchFactory()
-					.buildQueryBuilder().forEntity(Authors.class).get();
+	public List<Authors> findIndexedAuthorsByNamesHomonyns(String author, Integer ... cant){
+
+		SearchSession searchSession = Search.session(this.entityManager);
+		try{
+			List<Authors> authors = new ArrayList<Authors>();
+			List<AuthorPublications> results = searchSession.search(AuthorPublications.class)
+				.where(ap -> ap.bool() 
+						.should(ap.match().field("authors.names").matching(author))
+						.should(ap.match().field("authors.homonyns").matching(author))
+				)
+				.fetchHits( cant.length > 0 ? cant[0].intValue() : this.limit );
+//			SearchResult<Authors> results = searchSession.search(Authors.class)
+//					.where(auth -> auth.bool()
+//								.should(auth.match()
+//										.field("names")
+//										.matching(author))
+//								.should(	auth.match()
+//											.field("homonyns")
+//											.matching(author) )
+//							)
+//					.fetch( cant.length > 0 ? cant[0].intValue() : limit );
 			
-			for(String au : authors)
-			{
-				org.apache.lucene.search.Query lucene = qb.bool()
-						.should( qb.keyword().onField("names").ignoreFieldBridge().matching(au).createQuery()  )
-						.should( qb.keyword().onField("homonyns").ignoreFieldBridge().matching(au).createQuery() )
-						.createQuery();
-				
-				javax.persistence.Query fullTextQuery = fullTextEntityManager
-						 .createFullTextQuery(lucene,Authors.class);
-				
-				if( fullTextQuery.getResultList().isEmpty()) {
-					//throw new IndexOutOfBoundsException("function findAuthorsIndexedByListAuthors() : name, "+au+" not found in slr.authors");
-					System.err.println("function findAuthorsIndexedByListAuthors() : name, "+au+" not found in slr.authors");
-					System.err.println("inserting author: "+au);
-					int group = this.configuration.getValidateConfiguration("active").getGroupState();
-					Authors author = new Authors();
-					author.setNames(au);
-					author.setCreatedAt(new Date());
-					author.setGroup(group);
-					
-					res.add(this.authors_service.saveAuthors(author));
-					
-				}else
-					res.add((Authors)fullTextQuery.getResultList().get(0));
-			}
+			results.forEach(r->{
+				authors.add(r.getAuthors());
+			});
 			
-		}catch (EmptyQueryException  e) {
-			System.err.println("function findAuthorsIndexedByName(): "+e.getMessage());
+			return  authors;
+			
+		} catch (Exception e) {
+			System.err.println("function findIndexedAuthorsByName(): "+e.getMessage());
+			return null;
 		}
-		entityManager.close();
-		return res;
 	}
 	
-	@SuppressWarnings("unchecked")
+	/*
 	@Transactional
 	public List<DblpPublications> findIndexedDblpPublicationByCrossref(String dblpKey){
 		List<DblpPublications> res = new ArrayList<DblpPublications>();
@@ -210,35 +201,189 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 		entityManager.close();
 		return res;
 	}
+	*/	
+	public List<DblpPublications> findIndexedDblpPublicationByCrossref(String key){
+		
+		SearchSession searchSession = Search.session(this.entityManager);
+		try{
+			SearchResult<DblpPublications> results = searchSession
+					.search(DblpPublications.class)
+					.where( data -> data.match()
+							.field("crossref")
+							.matching(key)
+							)
+					.fetchAll();
+			
+			return results.hits();
+			
+		} catch (SearchException e) {
+			System.err.println("function findIndexedDblpPublicationByCrossref(): "+e.getMessage());
+		}
+		return new ArrayList<DblpPublications>();
+	}
 	
+//	@Transactional
+//	public List<DblpPublications> findNoProceedingReferences(List<DblpPublications> dblp){
+//		List<DblpPublications> res = new ArrayList<DblpPublications>();
+//		
+//		SearchSession searchSession = Search.session(this.entityManager);
+//		try{
+//			
+//			for (DblpPublications publication : dblp) {
+//				
+//				SearchResult<DblpPublications> results = searchSession
+//						.search(DblpPublications.class)
+//						.where( data -> data.match()
+//								.field("crossref")
+//								.matching(publication.getKeyDblp())
+//								)
+//						.fetch(1);
+//				
+//				if(results.total().hitCount() < 1)
+//					res.add(publication);
+//			}
+//			
+//		} catch (Exception e) {
+//			System.err.println("function findIndexedDblpPublicationByCrossref(): "+e.getMessage());
+//		}
+//		
+//		
+//		return res;
+//	}
+	
+	/*
+	 * Author_publications queries
+	 *
+	 */
+	
+	public List<AuthorPublications> findPublicationsByTitleAbstract(String text, Integer ... limit){
+		SearchSession searchSession = Search.session(this.entityManager);
+		try {
+			List<AuthorPublications> results = searchSession.search(AuthorPublications.class)
+					.where(x -> x.nested().objectField("publications") 
+							.nest( x.bool()
+									.should(	x.phrase()
+												.field("publications.title")
+												.matching(text)
+											)
+									.should(	x.phrase()
+												.field("publications.abstract_")
+												.matching(text)
+											)
+								)
+							)
+					.fetchHits( limit.length < 1 ? this.limit : limit[0].intValue() );
+							
+			return results;
+		} catch (Exception e) {
+			System.out.println("function findPublicationsByTitleAbstract(), "+e.getMessage());
+		}
+		return new ArrayList<AuthorPublications>();
+	}
+	
+	//fulltextfield in publications [ ee, rgInfo, abstract, title ]
+	//keyword field in publications [ dblpKey, crossref] 
 	@Transactional
-	public List<Publications> searchPublicationMatchingTitleAbstract(String phrase, int limit){
+	public List<AuthorPublications> findIndexedPublicationsByFieldName(String text, String field, Integer ... cant)
+	{
+		SearchSession searchSession = Search.session(this.entityManager);
+		this.limit = cant.length > 0 ? cant[0].intValue(): this.limit;
 		
 		try {
-			QueryBuilder qb = Search.getFullTextEntityManager(this.entityManager)
-					.getSearchFactory()
-					.buildQueryBuilder()
-					.forEntity(Publications.class).get();
+			List<AuthorPublications> response = searchSession.search(AuthorPublications.class)
+					.where( x-> x.nested().objectField("publications")
+							.nest( x.bool(  y->{
+									if(field.equalsIgnoreCase("ee") || field.equalsIgnoreCase("doi")) {
+										y.should( x.match().field("publications.ee").matching(text))
+										.should(x.wildcard().field("publications.ee").matching("http*/"+text));
+									}
+									else if(field.equalsIgnoreCase("rginfo")) 
+										y.should( x.wildcard().field("publications.rgInfo").matching("*"+text+"*"));
+									
+									else if(field.equalsIgnoreCase("dblpKey"))
+										y.should(x.match().field("publications.dblpKey").matching(text));
+									
+									else if(field.equalsIgnoreCase("crossref"))
+										y.should(x.match().field("publications.crossref").matching(text));
+
+									else
+										System.out.println( "Function findIndexedPublicationsByFullTextFields(), field "+field+" not found as fulltext.");
+							}) )
+					).fetchHits(this.limit);
 			
-//			org.apache.lucene.search.Query lucene = qb.bool()
-//					.must(qb.simpleQueryString().onField("title")
-//					.matching(title).createQuery())
-//					.createQuery();
-//			
-//			javax.persistence.Query fullTextQuery = fullTextEntityManager
-//					 .createFullTextQuery(lucene,Publications.class)
-//					 
-//					 .setMaxResults(limit);
-//			
-//			return fullTextQuery.getResultList();
-//			FullTextSession fullTextSession = Search.getFullTextSession(session);
-//			QueryDescriptor query = ElasticsearchQueries.fromQueryString("title:tales");
-//			List<?> result = fullTextSession.createFullTextQuery(query, ComicBook.class).list();
-		
-			this.entityManager.close();
-		}catch (EmptyQueryException e) {
-			System.err.println("function searchPublicationMatchingTitleAbstract(): "+e.getMessage());
+			return response;
+		} catch (Exception e) {
+			System.out.println("function findIndexedPublicationsByFieldName(), "+e.getMessage());
 		}
-		return new ArrayList<Publications>();
+		return new ArrayList<AuthorPublications>();
+	}
+	
+	@Transactional
+	public List<AuthorPublications> findIndexedPublicationsByNestedTypeDocument( String text, String document, String field_document, Integer ...cant){
+		SearchSession searchSession = Search.session(this.entityManager);
+		this.limit = cant.length > 0 ? cant[0].intValue(): this.limit;
+		//List<String> documents = Arrays.asList("article","inproceedings","proceedings","book","incollection");
+		try{
+			List<AuthorPublications> response = searchSession.search(AuthorPublications.class)
+					.where(x -> x.nested().objectField("publications")
+						.nest( x.bool( y->{
+							if(document.equalsIgnoreCase("book")) {
+								if(field_document.equalsIgnoreCase("bookTitle"))
+									y.should(x.match().field("publications.books.bookTitle").matching(text));
+								else if(field_document.equalsIgnoreCase("series"))
+									y.should(x.match().field("publications.books.series").matching(text));
+								else
+									System.out.println( "Function findIndexedPublicationsByNestedTypeDocument(), field "+field_document+" not found as fulltext.");
+							}
+							else if(document.equalsIgnoreCase("incollection")) {
+								if(field_document.equalsIgnoreCase("bookTitle"))
+									y.should(x.match().field("publications.bookChapters.bookTitle").matching(text));
+								else if(field_document.equalsIgnoreCase("isbn"))
+									y.should(x.match().field("publications.bookChapters.isbn").matching(text));
+								else if(field_document.equalsIgnoreCase("series"))
+									y.should(x.match().field("publications.bookChapters.series").matching(text));
+								else
+									System.out.println( "Function findIndexedPublicationsByNestedTypeDocument(), field "+field_document+" not found as fulltext.");
+							}
+							else if(document.equalsIgnoreCase("article")) {
+								if(field_document.equalsIgnoreCase("bookTitle"))
+									y.should(x.match().field("publications.journalPapers.bookTitle").matching(text));
+								else
+									System.out.println( "Function findIndexedPublicationsByNestedTypeDocument(), field "+field_document+" not found as fulltext.");
+							}
+							else if(document.equalsIgnoreCase("inproceedings")) {
+								if(field_document.equalsIgnoreCase("bookTitle"))
+									y.should(x.match().field("publications.conferencePapers.bookTitle").matching(text));
+								else
+									System.out.println( "Function findIndexedPublicationsByNestedTypeDocument(), field "+field_document+" not found as fulltext.");
+							}
+							else if(document.equalsIgnoreCase("proceedings")) {
+								//	field_document[ 'conferenceEditorials.isbn', 'conferenceEditorials.bookTitle','journalEditorials.isbn','journalEditorials.bookTitle']
+								if(field_document.equalsIgnoreCase("conferenceEditorials.isbn"))
+									y.should(x.match().field("publications.conferenceEditorials.isbn").matching(text));
+								
+								else if(field_document.equalsIgnoreCase("conferenceEditorials.bookTitle"))
+									y.should(x.match().field("publications.conferenceEditorials.bookTitle").matching(text));
+								
+								else if(field_document.equalsIgnoreCase("journalEditorials.isbn"))
+									y.should(x.match().field("publications.journalEditorials.isbn").matching(text));
+								
+								else if(field_document.equalsIgnoreCase("journalEditorials.bookTitle"))
+									y.should(x.match().field("publications.journalEditorials.bookTitle").matching(text));
+								
+								else
+									System.out.println( "Function findIndexedPublicationsByNestedTypeDocument(), field "+field_document+" not found as fulltext.(doc_type -> proceedings)");
+							}
+							else
+								System.out.println( "Function findIndexedPublicationsByNestedTypeDocument(), document "+document+" not found as fulltext.");
+								
+						}) )
+					).fetchHits(this.limit);
+			
+			return response;
+		}catch (Exception e) {
+			System.out.println("function findIndexedPublicationsByNestedTypeDocument(), "+e.getMessage());
+		}
+		return new ArrayList<AuthorPublications>();
 	}
 }

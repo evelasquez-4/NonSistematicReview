@@ -6,10 +6,7 @@ import java.util.Date;
 import java.util.Optional;
 
 import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
 
-import org.hibernate.search.jpa.FullTextEntityManager;
-import org.hibernate.search.jpa.Search;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,8 +25,6 @@ public class CountriesService {
 
 	@Autowired
 	private CountriesRepository country_repo;
-	@Autowired
-	private EntityManager em;
 	
 	public Countries findById(Long id){
 		Optional<Countries> res = this.country_repo.findById(id);
@@ -39,20 +34,6 @@ public class CountriesService {
 		
 		
 		return res.get();
-	}
-	
-	@SuppressWarnings("static-access")
-	@Transactional
-	public String indexCountriesTable() {
-		try {
-			FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(this.em);
-			fullTextEntityManager.createIndexer(Countries.class).startAndWait();
-
-			
-		} catch (InterruptedException e) {
-			System.err.println("function indexEntity(): "+e.getMessage());
-		}
-		return "Entity: Countries, was indexed.";
 	}
 	
 	
@@ -74,15 +55,21 @@ public class CountriesService {
 			json = new JSONArray(response.body().string());
 			json.iterator().forEachRemaining(country->{
 				
-				Countries c = new Countries();
-				String name = ((JSONObject) country).getString("name");
-				String code = ((JSONObject) country).getString("alpha2Code");
+//				Countries c = new Countries();
+//				String name = ((JSONObject) country).getString("name");
+//				String code = ((JSONObject) country).getString("alpha2Code");
+//				
+//				c.setCountryName( new String(name.getBytes(Charset.forName("ISO-8859-1")), Charset.forName("UTF-8")));
+//				c.setCode(new String(code.getBytes(Charset.forName("ISO-8859-1")),Charset.forName("UTF-8")));
+//				c.setCreatedAt(new Date());
+//				
+//				this.country_repo.saveAndFlush(c);
 				
-				c.setCountryName( new String(name.getBytes(Charset.forName("ISO-8859-1")), Charset.forName("UTF-8")));
-				c.setCode(new String(code.getBytes(Charset.forName("ISO-8859-1")),Charset.forName("UTF-8")));
-				c.setCreatedAt(new Date());
-				
-				this.country_repo.saveAndFlush(c);
+				this.country_repo.save(new Countries(0, 
+						((JSONObject) country).getString("name"),
+						((JSONObject) country).getString("alpha2Code"), 
+						new Date(),
+						null));
 				
 			});
 			

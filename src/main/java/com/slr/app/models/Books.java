@@ -5,6 +5,7 @@ import java.util.Date;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -14,6 +15,9 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -25,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Entity
 @Table(name = "books", schema = "slr")
 @JsonIgnoreProperties({"hibernateLazyinitializer","handler"})
+@Embeddable
 public class Books implements java.io.Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -44,10 +49,14 @@ public class Books implements java.io.Serializable {
 	@JoinColumn(name = "publisher_id" ,referencedColumnName = "id")
 	private Publishers publishers;
 	
-	
+	@FullTextField(analyzer = "english_analyzer")
 	private String series;
+	
+	@FullTextField(analyzer = "english_analyzer")
 	private String bookTitle;
 	private String pages;
+	
+	@KeywordField(normalizer = "english_normalyzer")
 	private String isbn;
 	private String school;
 	private String cite;

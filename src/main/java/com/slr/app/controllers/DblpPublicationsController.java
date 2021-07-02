@@ -1,15 +1,22 @@
 package com.slr.app.controllers;
 
 import java.text.ParseException;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.slr.app.models.DblpPublications;
@@ -58,6 +65,36 @@ public class DblpPublicationsController {
 			
 		this.dblp_service.insertIntoAuthorPublications(id.toString(), state, limit);
 		
+	}
+	
+	@GetMapping("/list_pageable")
+	public ResponseEntity<Map<String, Object>> getDblpPublicationsByTypeStateGroupPageable(
+			@RequestParam(defaultValue = "0") int page,
+	        @RequestParam(defaultValue = "10") int size,
+	        @RequestBody(required = true) Map<String, String> values)
+	{
+		String doc_type = values.getOrDefault("doc_type", "");
+		String state = values.getOrDefault("state", "1.inserted");
+		Long grupo = Long.valueOf(	values.getOrDefault("grupo", "1") );
+		
+		try {
+			
+			Pageable paging = PageRequest.of(page, size);
+			Page<DblpPublications> pages = this.dblp_service.getDblpPublicationsByTypeStateGroupPageable(paging, doc_type, state, grupo);
+			
+			
+			Map<String, Object> response = new HashMap<String, Object>();
+			response.put("dblp_publications",pages.getContent());
+			response.put("currentPage",	pages.getNumber() );
+			response.put("totalItems", pages.getTotalElements());
+			response.put("totalPages", pages.getTotalPages());
+			
+			
+			return new ResponseEntity<>(response, HttpStatus.OK);
+			
+		} catch ( Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 	
 }

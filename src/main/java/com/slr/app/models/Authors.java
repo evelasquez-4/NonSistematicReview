@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -21,15 +22,13 @@ import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.ContainedIn;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.IndexedEmbedded;
-import org.hibernate.search.annotations.Store;
+import org.hibernate.search.engine.backend.types.ObjectStructure;
+import org.hibernate.search.engine.backend.types.Projectable;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vladmihalcea.hibernate.type.array.ListArrayType;
 
 /**
@@ -41,7 +40,6 @@ import com.vladmihalcea.hibernate.type.array.ListArrayType;
 	    name = "list-array",
 	    typeClass = ListArrayType.class
 	)
-@Indexed
 public class Authors implements java.io.Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -55,26 +53,28 @@ public class Authors implements java.io.Serializable {
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "department_id",referencedColumnName = "id")
-	//@IndexedEmbedded(depth = 1, prefix = "department_")
+	@Embedded
+    @IndexedEmbedded(structure = ObjectStructure.NESTED)
 	private Departments departments;
 	
 	private String key;
 	private String pid;
-	@Field
+	
 	private String position;
-	@Field
+	
 	private String skills;
-	@Field
+	
 	private String disciplines;
 	
 	@Column(name = "names", nullable = false)
-	@Field(name = "names",index=Index.YES, analyze=Analyze.YES, store=Store.NO)
+	//@Field(name = "names",index=Index.YES, analyze=Analyze.YES, store=Store.NO)
+	@FullTextField(analyzer = "english_analyzer",projectable = Projectable.YES)
 	private String names;
 	
 	@Type(type = "list-array")
 	@Column(	name = "homonyns",	columnDefinition = "text[]" )
-	@Field(name = "homonyns",index = Index.YES, analyze = Analyze.YES, store = Store.NO)
-	@IndexedEmbedded
+	//@Field(name = "homonyns",index = Index.YES, analyze = Analyze.YES, store = Store.NO)
+	@GenericField
 	private List<String> homonyns;
 	
 	@Type(type = "list-array")
@@ -86,13 +86,14 @@ public class Authors implements java.io.Serializable {
 	private List<String> cites;
 	
 	private String mdate;
+	
 	private Date createdAt;
 	
 	@Type(type = "list-array")
 	@Column(	name = "awards",	columnDefinition = "text[]" )
 	private List<String> awards;
 	
-	@Field
+	
 	private String affiliation;
 
 	@Column(name = "insert_group")
@@ -101,7 +102,6 @@ public class Authors implements java.io.Serializable {
 	@Column(name = "publications_updated", nullable = true)
 	private boolean publicationsUpdated;
 	
-	@ContainedIn
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "authors")
 	private Set<AuthorPublications> authorPublicationses = new HashSet<AuthorPublications>(0);
 	
@@ -111,7 +111,7 @@ public class Authors implements java.io.Serializable {
 	public Authors(long id, String names) {
 		this.id = id;
 		this.names = names;
-	}
+	} 
 
 	public Authors(long id, Departments departments, String key, String pid, String position, String skills,
 			String disciplines, String names, List<String> homonyns, List<String> urls, List<String> cites, String mdate,
@@ -310,7 +310,8 @@ public class Authors implements java.io.Serializable {
 		this.publicationsUpdated = publicationsUpdated;
 	}
 	
-	@JsonManagedReference
+	//@JsonManagedReference
+	@JsonIgnore
 	public Set<AuthorPublications> getAuthorPublicationses() {
 		return this.authorPublicationses;
 	}

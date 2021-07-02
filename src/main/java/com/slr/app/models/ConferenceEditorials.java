@@ -3,6 +3,7 @@ package com.slr.app.models;
 
 import java.util.Date;
 import javax.persistence.Column;
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -14,6 +15,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 /**
@@ -21,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
  */
 @Entity
 @Table(name = "conference_editorials", schema = "slr")
+@Embeddable
 public class ConferenceEditorials implements java.io.Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -38,9 +43,12 @@ public class ConferenceEditorials implements java.io.Serializable {
 	@JoinColumn(name = "publication_id")
 	private Publications publications;
 	
+	@KeywordField(normalizer = "english_normalyzer")
 	private String isbn;
+	
 	private String note;
 	private String series;
+	@FullTextField( analyzer = "english_analyzer")
 	private String bookTitle;
 	private String pages;
 	private Date createdAt;

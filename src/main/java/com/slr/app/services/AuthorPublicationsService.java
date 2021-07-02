@@ -91,7 +91,7 @@ public class AuthorPublicationsService {
 			
 			for(String name : dblp.getAuthor()) 
 			{
-				List<Authors> auth = this.index_service.findAuthorsIndexedByName(name);
+				List<Authors> auth = this.index_service.findIndexedAuthorsByNamesHomonyns(name);
 				//add the first element of authors array finded
 				findedAuthors.add(auth.get(0));
 			}

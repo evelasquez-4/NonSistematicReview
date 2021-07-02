@@ -3,6 +3,8 @@ package com.slr.app.repositories;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.data.jpa.repository.Query;
@@ -29,4 +31,12 @@ public interface DblpPublicationsRepository extends JpaRepository<DblpPublicatio
 			@Param("id") int id,
 			@Param("state") String state,
 			@Param("group") int group);
+	
+	@Query(value = "SELECT * FROM slr.dblp_publications "
+			+ " WHERE grupo = :grupo AND updated_state = :state AND doc_type = :doc_type", nativeQuery = true)
+	public Page<DblpPublications> getDblpPublicationsByTypeStateGroupPageable(Pageable pageable,
+			@Param("doc_type") String doc_type, 
+			@Param("state") String state, 
+			@Param("grupo") Long grupo);
+	
 }

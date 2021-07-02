@@ -32,8 +32,11 @@ public class TmpApis implements java.io.Serializable{
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@Column(name = "id", unique = true, nullable = false)
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name = "key_dblp", unique = true, nullable = false, length = 100)
+	private long id;
+	
+	@Column(name = "key_dblp", nullable = false, length = 100)
 	private String keyDblp;
 	
 	@Column(name = "api", length = 30)
@@ -42,7 +45,7 @@ public class TmpApis implements java.io.Serializable{
 	@Column(name = "search_params", length = 500)
 	private String searchParams;
 	
-	@Column(name = "group")
+	@Column(name = "grupo")
 	private Integer group;
 	
 	@Column(name = "updated")
@@ -56,8 +59,9 @@ public class TmpApis implements java.io.Serializable{
 	@Column(name = "reg_date", length = 13)
 	private Date regDate;
 
-	public TmpApis(String keyDblp, String api, String searchParams, Integer group, boolean updated,
+	public TmpApis(long id,String keyDblp, String api, String searchParams, Integer group, boolean updated,
 			Serializable data,Date regDate) {
+		this.id = id;
 		this.keyDblp = keyDblp;
 		this.api = api;
 		this.searchParams = searchParams;
@@ -67,12 +71,20 @@ public class TmpApis implements java.io.Serializable{
 		this.regDate = regDate;
 	}
 	
-	public TmpApis(String keyDblp) {
-		this.keyDblp = keyDblp;
+	public TmpApis(long id) {
+		this.id = id;
 	}
 	
 	public TmpApis() {
 		
+	}
+	
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
 	}
 
 	public String getKeyDblp() {

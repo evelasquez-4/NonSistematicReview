@@ -39,7 +39,7 @@ public interface PublicationsRepository extends JpaRepository<Publications, Long
 	@Query(value = "SELECT p.* FROM slr.publications p "
 			+ " INNER JOIN slr.author_publications ap ON ap.publication_id = p.id"
 			+ " WHERE ap.publication_id = :publication_id  "
-			+ " AND (ap.author_id::CHARACTER VARYING <> '' OR ap.author_id IS NOT NULL)", nativeQuery = true)
+			+ " AND (ap.author_id::::CHARACTER VARYING <> '' OR ap.author_id IS NOT NULL)", nativeQuery = true)
 	public List<Publications> getPublicationsNoAuthors(
 			@Param("publication_id") Long publication_id);
 }
