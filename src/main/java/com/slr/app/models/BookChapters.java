@@ -5,6 +5,7 @@ import java.util.Date;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -16,6 +17,10 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 /**
@@ -23,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
  */
 @Entity
 @Table(name = "book_chapters", schema = "slr")
+@Embeddable
 public class BookChapters implements java.io.Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -44,9 +50,15 @@ public class BookChapters implements java.io.Serializable {
 	
 	private String cite;
 	private String chapter;
+	@FullTextField(analyzer = "english_analyzer")
 	private String bookTitle;
+	
 	private String pages;
+	
+	@KeywordField(normalizer = "english_normalyzer")
 	private String isbn;
+	
+	@GenericField
 	private String series;
 	private String school;
 	private Date createdAt;

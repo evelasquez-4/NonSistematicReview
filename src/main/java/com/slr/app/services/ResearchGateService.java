@@ -32,7 +32,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
 import com.slr.app.helpers.ResearchGateWebElements;
@@ -42,9 +42,6 @@ import com.slr.app.models.Publications;
 public class ResearchGateService {
 
 	private static final Logger LOG = LogManager.getLogger(ResearchGateService.class);
-	
-	@Autowired
-	private PublicationsServices publication_service;
 	
 	public static int CANTIDAD_RESULTADOS = 1;
 	// "doi", "title"

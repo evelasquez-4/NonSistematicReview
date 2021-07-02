@@ -29,6 +29,8 @@ import org.dblp.mmdb.RecordDbInterface;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
 
@@ -93,7 +95,7 @@ public class DblpPublicationsService {
 	}
 	
 	public DblpPublications save(DblpPublications publication) {
-		return this.dblp_repo.saveAndFlush(publication);
+		return this.dblp_repo.save(publication);
 	}
 	
 	
@@ -235,7 +237,7 @@ public class DblpPublicationsService {
 			
 			//search authors in slr.authors
 			if(!dblp.getAuthor().isEmpty()) 
-				authors  = this.author_service.searchIndexedAuthors(dblp.getAuthor()) ;
+				authors  = this.author_service.findAuthorsIndexedByListAuthors(dblp.getAuthor()) ;
 			else {
 				//inserting in slr.author_publications no authors
 				this.entityManager.persist(
@@ -402,7 +404,7 @@ public class DblpPublicationsService {
 				
 				//search authors in slr.authors
 				if(!dblp.getAuthor().isEmpty()) 
-					authorsMap.put(dblp.getKeyDblp(), this.author_service.searchIndexedAuthors(dblp.getAuthor()) );
+					authorsMap.put(dblp.getKeyDblp(), this.author_service.findAuthorsIndexedByListAuthors(dblp.getAuthor()) );
 				else
 					authorsMap.put(dblp.getKeyDblp(), null);
 				
@@ -624,5 +626,16 @@ public class DblpPublicationsService {
 	/* 
 	 * End parse functions to  slr.dblp_publications
 	 */
+	
+	
+	
+	public Page<DblpPublications> getDblpPublicationsByTypeStateGroupPageable(
+			Pageable pageable, String doc_type, String state,Long grupo){
+		return this.dblp_repo.getDblpPublicationsByTypeStateGroupPageable(pageable, doc_type, state, grupo);
+	}
+	
+	public List<DblpPublications> getDblpPublicationsByTypeStateGroup(String doc_type, String state,int grupo, int limit){
+		return this.dblp_repo.getDblpPublicationsByTypeStateGroup(doc_type, state, grupo,limit );
+	}
 	
 }

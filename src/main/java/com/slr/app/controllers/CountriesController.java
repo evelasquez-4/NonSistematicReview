@@ -41,7 +41,7 @@ public class CountriesController {
 	
 	@GetMapping("/index")
 	public String indexCountries() throws InterruptedException {
-		return this.country_serv.indexCountriesTable();
+		return "";// this.country_serv.indexCountriesTable();
 		
 	}
 

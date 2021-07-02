@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javax.persistence.EntityManager;
+
 import org.dblp.mmdb.Field;
 import org.dblp.mmdb.Person;
 import org.dblp.mmdb.RecordDb;
@@ -24,6 +26,7 @@ import org.xml.sax.SAXException;
 import com.slr.app.config.DBConnect;
 import com.slr.app.helpers.SlrHibernateLuceneIndex;
 import com.slr.app.models.Authors;
+import com.slr.app.models.Countries;
 import com.slr.app.repositories.AuthorsRepository;
 
 @Service
@@ -37,6 +40,8 @@ public class AuthorsService {
 	
 	@Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
 	private int batchSize;
+	@Autowired
+	private EntityManager entityManager;
 	
 	@Autowired
 	private SlrHibernateLuceneIndex lucene_index;
@@ -68,20 +73,34 @@ public class AuthorsService {
 				publication_updated, limit);
 	}
 	
-	public List<Authors> searchIndexedAuthors(List<String> names){
-//		List<Authors> res = new ArrayList<>();
-//		for(String name : names) {
-//			List<Authors> result = this.lucene_index.findAuthorsIndexedByName(name);
-//			if(result.isEmpty())
-//				throw new IndexOutOfBoundsException("function searchIndexedAuthors() : name, "+name+" not found in slr.authors");
-//			
-//			res.add( this.lucene_index
-//					.findAuthorsIndexedByName(name)
-//					.get(0)  );
-//			
-//		}
-//		return res;
-		return this.lucene_index.findAuthorsIndexedByListAuthors(names);
+	public List<Authors> findAuthorsIndexedByListAuthors(List<String> authors){
+		List<Authors> response = new ArrayList<Authors>();
+		try {	
+			for (String author : authors) 
+			{
+				List<Authors> auth = this.lucene_index.findIndexedAuthorsByNamesHomonyns(author);
+				
+				if(auth.isEmpty()) {
+					//throw new IndexOutOfBoundsException("function findAuthorsIndexedByListAuthors() : name, "+au+" not found in slr.authors");
+					System.err.println("function findAuthorsIndexedByListAuthors() : name, "+author+" not found in slr.authors");
+					System.err.println("inserting author: "+author);
+						
+					Authors obj = new Authors();
+					obj.setNames(author);
+					obj.setCreatedAt(new Date());
+					obj.setGroup(this.configuration_service.getValidateConfiguration("active").getGroupState());
+						
+					response.add(saveAuthors(obj));
+				}else{
+					for (Authors a : auth)
+						response.add(a);
+				}	
+			}
+				
+		} catch (Exception e) {
+			System.err.println("function findIndexedAuthorsByName(): "+e.getMessage());
+		}
+		return response;
 	}
 	
 	
@@ -153,8 +172,13 @@ public class AuthorsService {
 						for( String att	: atribts.keySet() ) 
 						{
 							if(att.equals("type")) { 
-								if(atribts.get(att).equals("affiliation")) 
+								if(atribts.get(att).equals("affiliation")) {
 									affiliation  = f.value();
+									
+//									if(!f.value().isEmpty()) {
+//										//String[] af = f.value();
+//									}
+								}
 								else if(atribts.get(att).equals("award"))
 									awards.add( f.value()+" ,"+atribts.getOrDefault("label", "") );
 							}

@@ -9,11 +9,11 @@ import com.slr.app.services.AuthorPublicationsService;
 
 @RestController
 @RequestMapping("/auth_publication")
+@SuppressWarnings("unused")
 public class AuthorPublicationsController {
 
 	@Autowired
 	private AuthorPublicationsService ap_service;
-	
 	@PostMapping("test")
 	public void test() {
 		

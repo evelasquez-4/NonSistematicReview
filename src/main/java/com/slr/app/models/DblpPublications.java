@@ -1,7 +1,6 @@
 //Generated Mar 14, 2021, 7:01:49 PM by Hibernate Tools 4.3.5.Final
 package com.slr.app.models;
 
-
 import java.util.Date;
 import java.util.List;
 
@@ -17,11 +16,10 @@ import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.Store;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 
 import com.vladmihalcea.hibernate.type.array.ListArrayType;;
 
@@ -45,18 +43,19 @@ public class DblpPublications{
 	//@GeneratedValue(strategy = GenerationType.IDENTITY)
 	
 	@Column(name = "key_dblp", length = 250)
-	@Field(name = "keydblp",index=Index.YES, analyze=Analyze.NO, store=Store.NO)
+	@KeywordField(normalizer="english_normalyzer")
 	private String keyDblp;
 	
 	@Type(type = "list-array")
 	@Column(	name = "author",	columnDefinition = "text[]" )
+	@GenericField
 	private List<String> author;
 	 
 //	@Type(type = "string-array")
 //	@Column(	name = "editor",	columnDefinition = "text[]" ) 
 //	private String[] editor;
 
-	
+	@FullTextField(analyzer = "english_analyzer")
 	private String title;
 	private String bookTitle;
 	private String pages;
@@ -64,7 +63,7 @@ public class DblpPublications{
 	@Column(name = "year", columnDefinition = "integer default 0")
 	private Integer year;
 	
-	@Field(name = "crossref",index=Index.YES, analyze=Analyze.NO, store=Store.YES)
+	@KeywordField(normalizer="english_normalyzer")
 	private String crossref;
 	
 	private String address;
@@ -74,6 +73,7 @@ public class DblpPublications{
 	private String month;
 	
 	private String url;
+	
 	private String ee;
 	private String cdrom;
 	private String cite;
