@@ -41,5 +41,6 @@ public class DBConnect {
     public void closeConnection() throws SQLException
     {
     	instance.closeConnection();
+    	connection.close();
     }
 }

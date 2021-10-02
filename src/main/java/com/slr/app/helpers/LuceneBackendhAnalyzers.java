@@ -35,6 +35,13 @@ public class LuceneBackendhAnalyzers implements LuceneAnalysisConfigurer{
 			.custom()
 			.tokenFilter(LowerCaseFilterFactory.class)
 			.tokenFilter(ASCIIFoldingFilterFactory.class);
+		
+		context.analyzer("simple_field_analyzer").custom()
+		.tokenizer( StandardTokenizerFactory.class )
+        .tokenFilter( LowerCaseFilterFactory.class )
+        .tokenFilter( ASCIIFoldingFilterFactory.class )
+        .tokenFilter( SnowballPorterFilterFactory.class ) 
+        .param( "language", "English" );
 	}
 
 }

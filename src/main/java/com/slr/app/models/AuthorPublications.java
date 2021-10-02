@@ -3,6 +3,7 @@ package com.slr.app.models;
 
 import java.util.Date;
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -25,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @Table(name = "author_publications", schema = "slr")
-@JsonIgnoreProperties({"hibernateLazyinitializer","handler"})
+@JsonIgnoreProperties(value={"hibernateLazyInitializer","handler","fieldHandler"})
 @Indexed
 public class AuthorPublications implements java.io.Serializable {
 
@@ -38,7 +39,6 @@ public class AuthorPublications implements java.io.Serializable {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private long id;
 	
-	//@IndexedEmbedded(depth = 1, prefix = "author_", targetElement = Authors.class)
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "author_id", referencedColumnName = "id")
 	@IndexedEmbedded(structure = ObjectStructure.NESTED)

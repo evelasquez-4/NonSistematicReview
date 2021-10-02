@@ -44,16 +44,14 @@ public class HibernateUtil {
 		configuration.addAnnotatedClass(ConferenceEditorials.class);
 		configuration.addAnnotatedClass(ConferencePapers.class);
 		configuration.addAnnotatedClass(Countries.class);
-		configuration.addAnnotatedClass(Departments.class);
+		configuration.addAnnotatedClass(Organizations.class);
 		configuration.addAnnotatedClass(Editions.class);
-		configuration.addAnnotatedClass(Institutions.class);
 		configuration.addAnnotatedClass(Journals.class);
 		configuration.addAnnotatedClass(JournalEditorials.class);
 		configuration.addAnnotatedClass(JournalPapers.class);
 		configuration.addAnnotatedClass(Keywords.class);
 		configuration.addAnnotatedClass(Publications.class);
 		configuration.addAnnotatedClass(PublicationKeywords.class);
-		configuration.addAnnotatedClass(Publishers.class);
 		configuration.addAnnotatedClass(DblpPublications.class);
         
         
@@ -113,15 +111,14 @@ public class HibernateUtil {
               sources.addAnnotatedClass(ConferenceEditorials.class);
               sources.addAnnotatedClass(ConferencePapers.class);
               sources.addAnnotatedClass(Countries.class);
-              sources.addAnnotatedClass(Departments.class);
+              sources.addAnnotatedClass(Organizations.class);
               sources.addAnnotatedClass(Editions.class);
-              sources.addAnnotatedClass(Institutions.class);
               sources.addAnnotatedClass(Journals.class);
               sources.addAnnotatedClass(JournalEditorials.class);
               sources.addAnnotatedClass(JournalPapers.class);
               sources.addAnnotatedClass(Keywords.class);
 	      	  sources.addAnnotatedClass(PublicationKeywords.class);
-	      	  sources.addAnnotatedClass(Publishers.class);
+	      	  
 	      	  sources.addAnnotatedClass(DblpPublications.class);
               
               Metadata metadata = sources.getMetadataBuilder().build();
@@ -162,15 +159,14 @@ public class HibernateUtil {
         config.addAnnotatedClass(ConferenceEditorials.class);
         config.addAnnotatedClass(ConferencePapers.class);
         config.addAnnotatedClass(Countries.class);
-        config.addAnnotatedClass(Departments.class);
+        config.addAnnotatedClass(Organizations.class);
         config.addAnnotatedClass(Editions.class);
-        config.addAnnotatedClass(Institutions.class);
         config.addAnnotatedClass(Journals.class);
         config.addAnnotatedClass(JournalEditorials.class);
         config.addAnnotatedClass(JournalPapers.class);
         config.addAnnotatedClass(Keywords.class);
         config.addAnnotatedClass(PublicationKeywords.class);
-        config.addAnnotatedClass(Publishers.class);
+        
         config.addAnnotatedClass(DblpPublications.class);
         
         return sessionFactory =  config.buildSessionFactory(); 

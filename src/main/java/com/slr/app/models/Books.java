@@ -7,6 +7,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -19,7 +20,7 @@ import javax.persistence.TemporalType;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 
@@ -44,16 +45,16 @@ public class Books implements java.io.Serializable {
     @JoinColumn(name = "publication_id", referencedColumnName = "id")
 	private Publications publications;
 	
-	//@ManyToOne(cascade = CascadeType.ALL)
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "publisher_id" ,referencedColumnName = "id")
-	private Publishers publishers;
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "edition_id")
+	private Editions editions;
 	
 	@FullTextField(analyzer = "english_analyzer")
 	private String series;
 	
 	@FullTextField(analyzer = "english_analyzer")
 	private String bookTitle;
+	
 	private String pages;
 	
 	@KeywordField(normalizer = "english_normalyzer")
@@ -72,11 +73,12 @@ public class Books implements java.io.Serializable {
 		this.publications = publications;
 	}
 
-	public Books(long id, Publications publications, Publishers publishers, String series, String bookTitle,
-			String pages, String isbn, String school, String cite, String month, String note, Date createdAt) {
+	public Books(long id, Editions editions, Publications publications, String series,
+			String bookTitle, String pages, String isbn, String school, String cite, String month, String note,
+			Date createdAt) {
 		this.id = id;
+		this.editions = editions;
 		this.publications = publications;
-		this.publishers = publishers;
 		this.series = series;
 		this.bookTitle = bookTitle;
 		this.pages = pages;
@@ -97,21 +99,22 @@ public class Books implements java.io.Serializable {
 		this.id = id;
 	}
 
-	@JsonBackReference
+	
+	public Editions getEditions() {
+		return this.editions;
+	}
+
+	public void setEditions(Editions editions) {
+		this.editions = editions;
+	}
+	
+	@JsonIgnore
 	public Publications getPublications() {
 		return this.publications;
 	}
 
 	public void setPublications(Publications publications) {
 		this.publications = publications;
-	}
-	@JsonBackReference
-	public Publishers getPublishers() {
-		return this.publishers;
-	}
-
-	public void setPublishers(Publishers publishers) {
-		this.publishers = publishers;
 	}
 
 	@Column(name = "series")

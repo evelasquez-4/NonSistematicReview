@@ -1,9 +1,15 @@
 package com.slr.app.services;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+import javax.transaction.Transactional;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,11 +41,247 @@ public class ApiManagerService {
 	private TmpApisService tmp_service;
 	@Autowired
 	private SlrConfigurationService configuration_service;
+	@Autowired
+	private IEEEApiService ieee_service;
+	@Autowired
+	private EntityManager entityManager;
+	
+	/*
+	 * @return: List<Publications>, updated
+	 */
+	@Transactional
+	public List<Publications> updatePublicationsFromIEEEApi(List<Publications> publications) 
+	{
+		List<Publications> response = new ArrayList<Publications>();
+		String param = this.ieee_service.obtainStringParamQuery(publications);
+		System.out.println("Search Params: "+param);
+		
+		if(param.isEmpty()) {
+			System.out.println("Publications: "+publications.size()+", not founded in ieee API.");
+			for (Publications p : publications) {
+				p.setApiState(p.getApiState()+1);
+				
+				this.entityManager.merge(p);
+			}
+			return response;
+		}
+					
+		JSONObject ieee =this.ieee_service.searchIEEEPublicationByParam(param);
+			
+		if(ieee.getInt("total_records") == 0) {
+			for (Publications p : publications) {
+				p.setApiState(p.getApiState()+1);
+				
+				this.entityManager.merge(p);
+			}
+			return response;
+		}else {
+			
+			for (Publications publication : publications) 
+			{
+				JSONObject pub_param = this.publication_service.getParameterToApiUpdateMendeleySpringer(publication);
+				List<String> search_params = new ArrayList<String>();
+				
+				if(pub_param.getBoolean("has_doi") )
+					search_params.add(pub_param.getString("doi"));
+				
+				if(pub_param.getBoolean("has_isbn"))
+					search_params.add( pub_param.getString("isbn") );
+				
+				//obj : response from ieee api
+				JSONObject pub_founded = this.ieee_service
+						.searchPublicationInParameterList(pub_param, search_params);
+				
+				if(!pub_founded.isEmpty())
+				{
+					response.add(publication);
+					
+					this.publication_service.updatePublicationDataFromAPIS(	publication,
+							this.ieee_service.obtainAuthorsFullNameFromJSONObject(pub_founded),
+							this.ieee_service.obtainKeywordsFromJSONArray(pub_founded)	);
+					
+					Map<String, String> affiliations = this.ieee_service.obtainAuthorsAffiliation(pub_founded);
+				
+					
+					affiliations.forEach( (k,v)->{
+						System.out.println("Affiliation:"+k+" : "+v);
+					});
+					
+					if( pub_founded.has("abstract") )
+						publication.setAbstract_( pub_founded.getString("abstract") );
+					
+					publication.setUpdatedState("2.api_updated");
+					//registro en public.tmp_apis
+					this.tmp_service.save( new TmpApis(0, publication.getDblpKey(),"ieee", pub_param.toString(),
+							this.configuration_service.getValidateConfiguration("active").getGroupState(),
+							true,ieee.toString(),new Date()) );
+					
+				}
+				publication.setApiState(publication.getApiState()+1);
+				this.entityManager.merge(publication);				
+			}
+			
+		}			
+		return response;
+	}
+	
+	/*
+	 * @return: List<Publications> founded and updated in Springer API
+	 */
+	@Transactional
+	public List<Publications> updatePublicationsFromSpringerApi(List<Publications> publications) {
+		List<Publications> res = new ArrayList<Publications>();
+		String params = this.springer_service.obtainSpringerApiParam(publications);
+		System.out.println("Search Params: "+params);
+		
+		
+		if(params.isEmpty()) {
+			for (Publications p : publications) {
+				p.setApiState( p.getApiState()+1);
+				//this.publication_service.savePublications(p);
+				this.entityManager.merge(p);
+			}
+			return res;
+		}
+		
+		System.out.println("Requesting to Springer API");
+		JSONObject springer = this.springer_service.findSpringerPublication(params);
+		int total = Integer.valueOf( springer.getJSONArray("result").getJSONObject(0).getString("total") ) ;
+		
+		if(total == 0)//no results founded in springer api
+		{
+			for (Publications p : publications) {
+				p.setApiState( p.getApiState()+1);
+				//this.publication_service.savePublications(p);
+				this.entityManager.merge(p);
+			}
+			return res;
+		}else 
+		{
+			for (Publications publication : publications) 
+			{
+				JSONObject publication_params = this.publication_service.getParameterToApiUpdateMendeleySpringer(publication);
+				List<String> search_params = new ArrayList<String>();
+				
+				if(publication_params.getBoolean("has_doi"))
+					search_params.add(publication_params.getString("doi"));
+				
+				if(publication_params.getBoolean("has_isbn"))
+					search_params.add( publication_params.getString("isbn") );
+				
+				
+				//found publication parameter in api results
+				JSONObject data = this.springer_service
+						.searchPublicationByListParameters(springer, search_params);
+				
+				if(!data.isEmpty())
+				{
+					res.add(publication);
+					
+					this.publication_service.updatePublicationDataFromAPIS(
+							publication, 
+							this.springer_service.obtainAuthors(data) ,
+							this.springer_service.obtainKeywords(data)
+					);
+					
+					if(data.has("abstract"))
+						publication.setAbstract_( data.getString("abstract") );
+					
+					publication.setUpdatedState("2.api_updated");
+					//insert into tmp_apis table
+					this.tmp_service.save(
+							new TmpApis(0,publication.getDblpKey(),"springer", publication_params.toString(),//params
+								this.configuration_service.getValidateConfiguration("active").getGroupState(),
+								true,springer.toString(),new Date() )
+							);
+				}
+				
+				publication.setApiState(publication.getApiState()+1);
+				this.entityManager.merge(publication);
+			}
+		}
+		return res;
+	} 
+	
+	
+	@Transactional
+	public List<Publications> updatePublicationsFromMendeleyApi(List<Publications> publications,String mendeley_token){
+		List<Publications> response = new ArrayList<Publications>();
+	
+		for (Publications publication : publications)
+		{
+			JSONObject pub_params = this.publication_service.getParameterToApiUpdateMendeleySpringer(publication);
+			
+			if( !pub_params.getBoolean("has_doi") 
+					&& !pub_params.getBoolean("has_isbn")	) 
+			{
+				publication.setApiState(publication.getApiState()+1);
+				this.entityManager.merge(publication);
+				
+				break;
+			}
+			
+			JSONArray mendeley  = new JSONArray();
+			this.mendeley_service.setKey(mendeley_token);
+			
+			if(pub_params.getBoolean("has_doi")) 
+			{
+				try {
+					mendeley = this.mendeley_service.findMendeleyPublicationByDOI(
+							URLEncoder.encode( pub_params.getString("doi"), 
+							StandardCharsets.UTF_8.toString() )   );					
+				} catch ( Exception  e) {
+					System.err.println("Function updatePublicationsFromMendeleyApi(), "+e.getMessage());
+				}
+			}else if( pub_params.getBoolean("has_isbn") && !pub_params.getBoolean("has_doi")) 
+			{
+				try {
+					mendeley = this.mendeley_service.findMendeleyPublicationByISBN(
+							URLEncoder.encode( pub_params.getString("isbn"),
+							StandardCharsets.UTF_8.toString() )		);
+				} catch ( Exception e) {
+					System.err.println("Function updatePublicationsFromMendeleyApi(), "+e.getMessage());
+				} 
+			}
+			
+			if(!mendeley.isEmpty()) {
+				response.add(publication);
+				
+				for(int i=0;i<mendeley.length();i++) {
+					JSONObject obj = mendeley.getJSONObject(i);
+					
+					if(obj.has("abstract"))
+						publication.setAbstract_(obj.getString("abstract"));
+					
+					this.publication_service.updatePublicationDataFromAPIS(publication,
+							this.mendeley_service.obtainAuthors(obj),
+							this.mendeley_service.obtainKeywords(obj) );
+					
+				}
+				
+				//registro en public.tmp_apis
+				this.tmp_service.save( new TmpApis(0, publication.getDblpKey(),"mendeley", pub_params.toString(),
+						this.configuration_service.getValidateConfiguration("active").getGroupState(),
+						true,mendeley.toString(),new Date()) );
+				
+				publication.setUpdatedState("2.api_updated");
+			}
+			
+			publication.setApiState(publication.getApiState()+1);
+			this.entityManager.merge(publication);
+			
+		}
+
+		return response;
+	}
+	
+	
 	
 	/*
 	 * Detail: funcion que busca información de una publicación,
 	 * 			de acuerdo al nombre de autor, usando la API de MENDELEY
 	 */
+	@Transactional
 	public String updatePublicationsFromMendeleySpringerAPI(String publication_type,String publication_state, String mendeley_key, Integer ...cant) 
 	{
 		//List<Publications> publications = this.publication_service.getPublicationsFromAuthorId(author.getId(), publication_state);
@@ -245,23 +487,6 @@ public class ApiManagerService {
 		JSONObject res =new JSONObject();
 		JSONArray json_array = new JSONArray();
 		JSONObject springer = new JSONObject();
-
-		/*
-		int j = 0;
-		for (int i = 0; i < pubs.size(); i++) {
-			
-			json_array.put(this.publication_service
-						.getParameterToApiUpdateMendeleySpringer(pubs.get(i)));
-			j++;
-			if( j % CONSTANTE == 0 ) {
-				params = this.springer_service.getPublicationUpdateParameters(json_array);
-				//llamada a la api de springer para actualizar publicacion
-				if(!params.isEmpty()) {
-					springer = this.springer_service.findSpringerPublication(params);
-				}
-				
-			}
-		}*/
 	
 		json_array.put(this.publication_service.getParameterToApiUpdateMendeleySpringer(pub));
 		String params = this.springer_service.getPublicationUpdateParameters(json_array);

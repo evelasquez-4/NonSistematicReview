@@ -12,8 +12,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import javax.persistence.EntityManager;
-
 import org.dblp.mmdb.Field;
 import org.dblp.mmdb.Person;
 import org.dblp.mmdb.RecordDb;
@@ -26,7 +24,6 @@ import org.xml.sax.SAXException;
 import com.slr.app.config.DBConnect;
 import com.slr.app.helpers.SlrHibernateLuceneIndex;
 import com.slr.app.models.Authors;
-import com.slr.app.models.Countries;
 import com.slr.app.repositories.AuthorsRepository;
 
 @Service
@@ -40,8 +37,6 @@ public class AuthorsService {
 	
 	@Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
 	private int batchSize;
-	@Autowired
-	private EntityManager entityManager;
 	
 	@Autowired
 	private SlrHibernateLuceneIndex lucene_index;
@@ -59,7 +54,7 @@ public class AuthorsService {
 	}
 	
 	public Authors saveAuthors(Authors author) {
-		return this.author_repository.saveAndFlush(author);
+		return this.author_repository.save(author);
 	}
 	
 	public List<Authors> getAuthorsByGroupPublicationUpdated(int grupo, boolean publication_updated, int limit){
@@ -73,12 +68,13 @@ public class AuthorsService {
 				publication_updated, limit);
 	}
 	
+	
 	public List<Authors> findAuthorsIndexedByListAuthors(List<String> authors){
 		List<Authors> response = new ArrayList<Authors>();
 		try {	
 			for (String author : authors) 
 			{
-				List<Authors> auth = this.lucene_index.findIndexedAuthorsByNamesHomonyns(author);
+				List<Authors> auth = this.lucene_index.findIndexedAuthorsByNamesHomonyns(author,"authors",1);
 				
 				if(auth.isEmpty()) {
 					//throw new IndexOutOfBoundsException("function findAuthorsIndexedByListAuthors() : name, "+au+" not found in slr.authors");
@@ -88,7 +84,7 @@ public class AuthorsService {
 					Authors obj = new Authors();
 					obj.setNames(author);
 					obj.setCreatedAt(new Date());
-					obj.setGroup(this.configuration_service.getValidateConfiguration("active").getGroupState());
+					obj.setInsertGroup(this.configuration_service.getValidateConfiguration("active").getGroupState());
 						
 					response.add(saveAuthors(obj));
 				}else{
@@ -104,11 +100,16 @@ public class AuthorsService {
 	}
 	
 	
+	public List<Authors> getAuthorsToUpdateAffiliation(boolean publication_updated, int grupo, int limit){
+		return this.author_repository
+				.getAuthorsToUpdateAffiliation(publication_updated, grupo, limit);
+	}
+	
 	
 	
 	
 	//begin parse authors to slr.authors
-	public void parseAuthors(String xml, String dtd) {
+	public void parseAuthors(String xml, String dtd)  {
 		
 		if(xml.isEmpty()  || dtd.isEmpty())
 			 throw new NullPointerException("Usage: java  <dblp-xml-file> <dblp-dtd-file>");
@@ -131,12 +132,13 @@ public class AuthorsService {
 	   System.out.println(  readDblpPersons(dblp.persons() ) ); 
 	}
 	
-	public int readDblpPersons(Stream<Person> persons) 
+	public int readDblpPersons(Stream<Person> persons)  
 	{	
 		int group = this.configuration_service.getValidateConfiguration("active").getGroupState();
-		
 		List<Authors> authors = new ArrayList<>();
 		int inserts = 0;
+		
+		
 		
 		for ( Iterator<Person> per = persons.iterator(); per.hasNext(); ) 
 		{
@@ -149,7 +151,8 @@ public class AuthorsService {
         	List<String> urls = new ArrayList<>();
         	List<String> cites = new ArrayList<>();
         	List<String> awards = new ArrayList<>();
-        	String affiliation = "";
+        	List<String> affiliations = new ArrayList<String>();
+        	
         	
         	//homonyns
         	person.getNames().forEach(name->{
@@ -171,23 +174,20 @@ public class AuthorsService {
 						
 						for( String att	: atribts.keySet() ) 
 						{
-							if(att.equals("type")) { 
-								if(atribts.get(att).equals("affiliation")) {
-									affiliation  = f.value();
-									
-//									if(!f.value().isEmpty()) {
-//										//String[] af = f.value();
-//									}
-								}
+							if(att.equals("type")) 
+							{ 
+								if(atribts.get(att).equals("affiliation"))
+									affiliations.add( f.value()  ); 
 								else if(atribts.get(att).equals("award"))
 									awards.add( f.value()+" ,"+atribts.getOrDefault("label", "") );
 							}
+							
 						}
 					}
 					break;
 				}
         	}
-
+     
         	authors.add(          			
         			new Authors(0,//id 
         			null,//departments
@@ -203,30 +203,31 @@ public class AuthorsService {
         			atts.get("mdate"),//mdate
         			new Date(),
         			awards,
-        			affiliation,
-        			group
-        			));	
+        			group,
+        			false,//publicationsUpdated
+        			affiliations,//affiliations
+        			null
+        			)  );
         	
-        	if(authors.size() % this.batchSize == 0) {
-        		inserts += batchAuthorsInsert(authors);
-        		System.out.println("rows inserted in slr.authors :"+inserts);
-        		authors.clear();
-        	}
+        	 if(authors.size() % this.batchSize == 0) {
+                 inserts += batchAuthorsInsert(authors);
+                 System.out.println("rows inserted in slr.authors :"+inserts);
+                 authors.clear();
+        	 }
         }
 		
-		if(!authors.isEmpty()) {
-    		inserts += batchAuthorsInsert(authors);
-    		System.out.println("rows inserted in slr.authors :"+inserts);
-    		authors.clear();
-    	}
-        
-		return inserts;
+	  if(!authors.isEmpty()) {
+		  inserts += batchAuthorsInsert(authors);
+          System.out.println("rows inserted in slr.authors :"+inserts);
+          authors.clear();
+      }
+	  
+	  return inserts;
 	}
 	
 	@SuppressWarnings("static-access")
 	public int batchAuthorsInsert(List<Authors> authors) {
-		
-		System.out.println("Rows to insert: "+authors.size());
+		//System.out.println("Rows to insert: "+authors.size());
 		int res = 0;
 		
 		DBConnect db = null;
@@ -238,7 +239,7 @@ public class AuthorsService {
 			
 			PreparedStatement ps = conn.prepareStatement(" INSERT INTO slr.authors (key, pid, position, skills,"
 					+ " disciplines, names, homonyns, urls, cites, "
-					+ " awards, affiliation, mdate, insert_group ) "
+					+ " awards, affiliations, mdate, insert_group ) "
 					+ "  VALUES( ? ,? ,? , ?, "
 					+ " ?, ?, ?, ? , ?, "
 					+ " ?, ?, ?, ? );");
@@ -259,9 +260,9 @@ public class AuthorsService {
 				
 				//ps.setDate(11, (java.sql.Date) new Date());
 				ps.setArray(10, ps.getConnection().createArrayOf("VARCHAR", author.getAwards().toArray()));
-				ps.setString(11, author.getAffiliation());
+				ps.setArray(11, ps.getConnection().createArrayOf("VARCHAR", author.getAffiliations().toArray()));
 				ps.setString(12, author.getMdate());
-				ps.setInt(13, Integer.valueOf( author.getGroup() ));
+				ps.setInt(13, Integer.valueOf( author.getInsertGroup() ));
 				
 				ps.addBatch();
 				res++;
@@ -270,22 +271,57 @@ public class AuthorsService {
 			conn.commit();
 			conn.close();
 			
-		} catch (SQLException e) {
+		}catch (SQLException e) {
 			System.out.println("function batchAuthorsInsert : "+e.getMessage());
+			 return 0;
 		}
+		return res;
+	}
+	
+	/*
+	@SuppressWarnings("static-access")
+	public int batchAuthorsInsertToOrganizationsAndAuthors(List<Authors> authors)  {
+		int res = 0;
 		
-		/*
-		for(Authors author : authors) 
+		DBConnect db = null;
+		Connection conn;
+		String org_query = "INSERT INTO slr.organizations(description, country_id) VALUES(?, ?)";
+		
+		String query = "INSERT INTO slr.authors (key, pid, position, skills,"
+				+ " disciplines, names, homonyns, urls, cites, "
+				+ " awards, mdate, insert_group, organization_id ) "
+				+ "  VALUES( ? ,? ,? , ?, "
+				+ " ?, ?, ?, ? , ?, "
+				+ " ?, ?, ?, ? );";
+		
+		try 
 		{
-			try {
-				PreparedStatement ps = db.getInstance()
-						.getConnection()
-						.prepareStatement(" INSERT INTO slr.authors (key, pid, position, skills,"
-								+ " disciplines, names, homonyns, urls, cites, "
-								+ " awards, affiliation, mdate, insert_group ) "
-								+ "  VALUES( ? ,? ,? , ?, "
-								+ " ?, ?, ?, ? , ?, "
-								+ " ?, ?, ?, ? );");
+			conn = db.getInstance().getConnection();
+			conn.setAutoCommit(false);
+			
+			String[] columns = {"id"};
+			PreparedStatement org = conn.prepareStatement(org_query, columns);
+			PreparedStatement ps = conn.prepareStatement(query);
+			for(Authors author : authors) 
+			{
+				int id = 0;
+				Organizations or = author.getOrganizationses();
+				
+				if(!Objects.isNull( or ) ){
+					
+					org.setString(1, or.getDescription());
+					org.setLong(2, or.getCountries().getId());
+					org.execute();
+					 
+					ResultSet rs = org.getGeneratedKeys();
+					if(rs.next()) id = rs.getInt(1);
+					
+					ps.setInt(13,id );
+					
+				}
+				else 
+					ps.setNull(13, java.sql.Types.NULL);
+
 				
 				ps.setString(1, author.getKey());
 				ps.setString(2, author.getPid());
@@ -301,35 +337,24 @@ public class AuthorsService {
 				
 				//ps.setDate(11, (java.sql.Date) new Date());
 				ps.setArray(10, ps.getConnection().createArrayOf("VARCHAR", author.getAwards().toArray()));
-				ps.setString(11, author.getAffiliation());
-				ps.setString(12, author.getMdate());
-				ps.setInt(13, Integer.valueOf( author.getGroup() ));
+				ps.setString(11, author.getMdate());
+				ps.setInt(12, Integer.valueOf( author.getInsertGroup() ));
 				
-				ps.executeUpdate();
 				
+					
+				ps.addBatch();
 				res++;
-				
-			} catch (SQLException e) {
-				System.out.println("function batchAuthorsInsert : "+e.getMessage());
 			}
+			ps.executeBatch();
+			conn.commit();
+			conn.close();
+			
+		} catch (SQLException e) {
+			System.err.println("function batchAuthorsInsert : "+e.getMessage());
 		}
-		
-		*/
-//		try {
-//			for (int i = 0; i < authors.size(); i++) {
-//				if (i > 0 && i % authors.size() == 0) {
-//		            this.entityManager.flush();
-//		            this.entityManager.clear();
-//		        }
-//				
-//				this.entityManager.persist( authors.get(i) );
-//				res++;
-//			}
-//		}catch (Exception e) {
-//			System.out.println("function :batchDblpPublicationInsert(), "+e.getMessage());
-//		}
 		return res;
 	}
-
 	//end parse authors to slr.authors
+	 * 
+	 */
 }

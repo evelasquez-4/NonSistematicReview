@@ -57,6 +57,7 @@ public class DblpPublications{
 
 	@FullTextField(analyzer = "english_analyzer")
 	private String title;
+	
 	private String bookTitle;
 	private String pages;
 	

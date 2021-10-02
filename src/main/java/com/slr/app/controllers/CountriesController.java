@@ -38,11 +38,10 @@ public class CountriesController {
 		this.country_serv.loadCountriesFromAPI(region);
 	}
 	
-	
-	@GetMapping("/index")
-	public String indexCountries() throws InterruptedException {
-		return "";// this.country_serv.indexCountriesTable();
+	@GetMapping("/search_country")
+	public Countries getCountrieOrDefault(@RequestBody(required = true) Map<String, String> values){
 		
+		return this.country_serv.getCountrieOrDefault(values.get("country_name"));
 	}
 
 }

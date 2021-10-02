@@ -14,9 +14,11 @@ public interface AuthorPublicationsRepository extends JpaRepository<AuthorPublic
 
 	@Query(value = "SELECT * FROM slr.author_publications "
 			+ " WHERE author_id = :id", nativeQuery = true)
-	public List<AuthorPublications> getPublicationsByAuthorId(@Param("id") Long id);
+	public List<AuthorPublications> findAuthorPublicationsByAuthorId(@Param("id") Long id);
 	
 	@Query("FROM AuthorPublications WHERE publication_id = :publication_id ORDER BY herarchy ASC")
-	public List<AuthorPublications> findByPublicationId(
+	public List<AuthorPublications> findAuthorPublicationsByPublicationId(
 			@Param("publication_id") Long publication_id);	
+	
+	
 }

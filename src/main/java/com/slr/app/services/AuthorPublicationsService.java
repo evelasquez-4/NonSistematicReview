@@ -41,8 +41,19 @@ public class AuthorPublicationsService {
 		return res.get();
 	}
 	
-	public List<AuthorPublications> findByPublicationId(Long publication_id) {
-		return this.author_publications.findByPublicationId(publication_id);
+	public List<Authors> getAuthorsFromPublicationId(Long publication_id){
+		List<Authors> res = new ArrayList<Authors>(); 
+		List<AuthorPublications> ap =  this.author_publications.findAuthorPublicationsByPublicationId(publication_id);
+		
+		ap.forEach(p->{
+			res.add(p.getAuthors());
+		});
+		
+		return res;
+	}
+	
+	public List<AuthorPublications> findAuthorPublicationsByPublicationId(Long publication_id) {
+		return this.author_publications.findAuthorPublicationsByPublicationId(publication_id);
 	} 
 	
 	public List<AuthorPublications> saveAuthorPublications(Publications publications, List<Authors> authors) {
@@ -91,7 +102,7 @@ public class AuthorPublicationsService {
 			
 			for(String name : dblp.getAuthor()) 
 			{
-				List<Authors> auth = this.index_service.findIndexedAuthorsByNamesHomonyns(name);
+				List<Authors> auth = this.index_service.findIndexedAuthorsByNamesHomonyns(name,"authors",1);
 				//add the first element of authors array finded
 				findedAuthors.add(auth.get(0));
 			}

@@ -18,7 +18,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 
 import org.dblp.mmdb.Field;
@@ -49,7 +48,6 @@ import com.slr.app.models.JournalEditorials;
 import com.slr.app.models.JournalPapers;
 import com.slr.app.models.Journals;
 import com.slr.app.models.Publications;
-import com.slr.app.models.Publishers;
 import com.slr.app.repositories.DblpPublicationsRepository;
 
 @Service
@@ -63,13 +61,11 @@ public class DblpPublicationsService {
 	@Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
 	private int batchSize;
 	
-	@PersistenceContext
+	@Autowired
 	private EntityManager entityManager;
 	
 	@Autowired
 	private AuthorPublicationsService authorPublication_service;
-	@Autowired
-	private PublishersService publisher_service;
 	@Autowired
 	private AuthorsService author_service;
 	@Autowired
@@ -98,8 +94,7 @@ public class DblpPublicationsService {
 		return this.dblp_repo.save(publication);
 	}
 	
-	
-	public void parseDblpFiles(String xmlFileName, String dtdFileName) 
+ 	public void parseDblpFiles(String xmlFileName, String dtdFileName) 
 	{
 		int grupo = this.configuration.getValidateConfiguration("active").getGroupState();
 		int inserts = 0;
@@ -212,20 +207,28 @@ public class DblpPublicationsService {
 		return res;
 	}
 	
+	@Transactional
+	public String insertIntoAuthorPublicationsByDoctypeState(String doc_type, String state, int limit) throws ParseException {
+		int grupo = this.configuration.getValidateConfiguration("active").getGroupState();
+		List<DblpPublications> dblp = this.dblp_repo.getDblpPublicationsByTypeStateGroup(doc_type, state, grupo, limit);
+		insertIntoAuthorPublications(dblp);
+		return "Publications inserted:"+dblp.size()+"\nDocumentType: "+doc_type;
+	}
+	
 	/*
 	 * llamada a funcion para insertar en slr.publications y slr.author_publications
 	 * exception: limit = 0 -> update by publication id, where 'doc_type' id the that id 
 	 */
 	@Transactional
-	public void insertIntoAuthorPublications(String doc_type, String state, int limit) throws ParseException  {
-		int group = this.configuration.getValidateConfiguration("active").getGroupState();
-		List<DblpPublications> dblpPublications = new ArrayList<DblpPublications>();
+	public void insertIntoAuthorPublications(List<DblpPublications> dblpPublications) throws ParseException  {
 		
-		if(limit > 0)
-			dblpPublications = this.dblp_repo.getDblpPublicationsByTypeStateGroup(doc_type, state, group, limit) ;
-		else
-			dblpPublications.add(findByIdStateGroup(Long.valueOf(doc_type),state, group));
-		
+//		List<DblpPublications> dblpPublications = new ArrayList<DblpPublications>();
+//		
+//		if(limit > 0)
+//			dblpPublications = this.dblp_repo.getDblpPublicationsByTypeStateGroup(doc_type, state, group, limit) ;
+//		else
+//			dblpPublications.add(findByIdStateGroup(Long.valueOf(doc_type),state, group));
+
 		int i = 0;
 		
 		for (DblpPublications dblp : dblpPublications) 
@@ -253,33 +256,30 @@ public class DblpPublicationsService {
 			
 			
 			//inserting in slr.publishers
-			Publishers publisher = null;
-			if(!dblp.getPublisher().isEmpty()) {
-				publisher = new Publishers(0, dblp.getPublisher(), "active", 
-						new Date(), null, null,null);
-				this.entityManager.persist(publisher);
-			}
+			String publisher = dblp.getPublisher().isEmpty() ? null : dblp.getPublisher();
 			
 			//inserting in slr.editions
 			Journals journal = null;
 			if(!dblp.getJournal().isEmpty()) {
-				journal = new Journals(0, dblp.getJournal(), "", new Date(), null);
+				journal = new Journals(0, dblp.getJournal(), null, new Date(), null);
 				this.entityManager.persist(journal);
 			}
 			
 			Conferences conference = null;
-			if(dblp.getBookTitle().isEmpty()) {
-				conference = new Conferences(0, dblp.getBookTitle(), "", new Date(), null);
+			if(!dblp.getBookTitle().isEmpty()) {
+				conference = new Conferences(0, dblp.getBookTitle(), null, new Date(), null);
 				this.entityManager.persist(conference);
 			}
 			
-			Editions edition = new Editions(0, conference, journal, publisher, "", dblp.getVolume(), dblp.getNumber(), null, null, null, null);
+			Editions edition = new Editions(0, conference, journal, publisher, dblp.getVolume(), dblp.getNumber(),
+						null, null, null, null,null,null);
+			
 			this.entityManager.persist(edition);
 			
 			switch (dblp.getDocType()) 
 			{
 				case "book":
-					Books book = new Books(0, publication, publisher, 
+					Books book = new Books(0, edition,publication, 
 							dblp.getSeries(),//series
 							dblp.getBookTitle(),//bookTitle
 							dblp.getPages(),//pages
@@ -290,9 +290,10 @@ public class DblpPublicationsService {
 							dblp.getNote(),//note
 							new Date());
 					this.entityManager.persist(book);
+					
 				break;
 				case "incollection":
-					BookChapters bookChapter = new BookChapters(0, publication, publisher,
+					BookChapters bookChapter = new BookChapters(0, edition,publication,
 							dblp.getCite(),//cite
 							dblp.getChapter(),//chapter
 							dblp.getBookTitle(),//bookTitle
@@ -328,7 +329,7 @@ public class DblpPublicationsService {
 					String proceedingReference = getProceedingReference(dblp.getKeyDblp());
 					
 					if(Objects.equals(proceedingReference, "incollection")) {
-						BookChapters bc = new BookChapters(0, publication, publisher,
+						BookChapters bc = new BookChapters(0, edition,publication,
 								dblp.getCite(),//cite
 								dblp.getChapter(),//chapter
 								dblp.getBookTitle(),//bookTitle
@@ -366,6 +367,7 @@ public class DblpPublicationsService {
 			dblp.setUpdatedState("2.finalize");
 			this.entityManager.merge(dblp);
 			i++;
+			
 			if(i % 20 == 0) {
 				this.entityManager.flush();
 				this.entityManager.clear();
@@ -390,7 +392,7 @@ public class DblpPublicationsService {
 		List<Publications> publicationsNoInserted = new ArrayList<>();
 		
 		Map<String, List<Authors>> authorsMap = new HashMap<String, List<Authors>>();
-		Map<String, Publishers> publisherMap = new HashMap<String, Publishers>();
+		//Map<String, Publishers> publisherMap = new HashMap<String, Publishers>();
 		//Map<String, Editions> editionMap = new HashMap<String, Editions>();
 		
 	
@@ -412,8 +414,7 @@ public class DblpPublicationsService {
 				//adding to List<Publications>
 			//	publicationsNoInserted.add( this.publication_service.saveFromDblpPublication(dblp) );
 				//inserting publisher
-				publisherMap.put(dblp.getKeyDblp(), this.publisher_service
-														.registerPublisher(dblp.getPublisher()) );	
+				//publisherMap.put(dblp.getKeyDblp(), this.publisher_service.registerPublisher(dblp.getPublisher()) );	
 				
 				if(i%20 == 0) {
 					System.out.println("BEGIN INSERTING DATA");
@@ -431,24 +432,9 @@ public class DblpPublicationsService {
 					publicationsNoInserted.clear();
 					System.out.println("END INSERTING DATA");
 				}
-				
-				//total rows inserted in slr.author_publications
-				//int rows = this.authorPublication_service.saveAuthorPublicationProcedure(publication, authors);
-				
-				
-				
-				
-				//register in slr.publisher
-				//@SuppressWarnings("unused")
-				//Publishers publisher = dblp.getPublisher().isEmpty() ?  null : this.publisher_service.registerPublisher(dblp.getPublisher());
-				
+								
 			}
-//			if(dblpPublications.size() < batchSize && dblpPublications.size() > 0) {
-//				 this.entityManager.flush();
-//		         this.entityManager.clear();
-//			}
-			
-			
+	
 		}catch (NullPointerException | ArrayIndexOutOfBoundsException e) {
 			System.err.println("function: parse() "+e.getMessage());
 		}

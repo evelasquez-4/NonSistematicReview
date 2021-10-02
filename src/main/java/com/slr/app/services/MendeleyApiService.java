@@ -19,10 +19,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 
 
@@ -172,6 +170,7 @@ public class MendeleyApiService{
 	}
 	//end mendeley api functions
 	
+	
 	public JSONArray findMendeleyPublicationByDOI(String doi) throws Exception
 	{
 		setUrlBase("https://api.mendeley.com/catalog?doi="+doi+"&limit=1");
@@ -195,6 +194,7 @@ public class MendeleyApiService{
 		} catch (JSONException e) 
 		{
 			System.err.println("Function: findMendeleyPublicationByDOI(), "+e.getMessage());
+			throw new Exception("Verify Mendeley Token needed.");
 		}
 		
 		
@@ -231,7 +231,7 @@ public class MendeleyApiService{
 		return res;
 	}
 	
-	public JSONArray findMendeleyPublicationByISBN(String isbn)
+	public JSONArray findMendeleyPublicationByISBN(String isbn) throws Exception
 	{
 		setUrlBase("https://api.mendeley.com/catalog?isbn="+isbn+"&limit=1");
 		
@@ -253,10 +253,11 @@ public class MendeleyApiService{
 			
 		} catch (JSONException | IOException e) {
 			System.err.println("Function: findMendeleyPublicationByISBN(), "+e.getMessage());
-			
+			throw new Exception("Verify Mendeley Token needed.");
 		}
 		return res;
 	}
+	
 	/*@param: name:String, author name.
 	 * 		  limit:int, results
 	 * @return JSONArray
@@ -308,37 +309,6 @@ public class MendeleyApiService{
 		this.key = key;
 	}
 	
-	
-	public String updateMendeleyKey() {
-		String response = null;
-		OkHttpClient client = new OkHttpClient().newBuilder().build();
-		MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
-		
-		@SuppressWarnings("deprecation")
-		RequestBody body = RequestBody
-				.create(mediaType, "username=7265&password=woXajqQD6KDf0ZJo&grant_type=client_credentials&scope=all");
-
-		Request request  = new Request.Builder()
-				.url("https://api.mendeley.com/oauth/token")
-				.method("POST", body)				
-				.addHeader("Authorization", "Basic NzI2NTp3b1hhanFRRDZLRGYwWkpv")
-				.addHeader("Content-Type", "application/x-www-form-urlencoded")
-				.build();
-		
-		try(Response resp = client.newCall(request).execute())
-		{
-			if (!resp.isSuccessful()) 
-				throw new IOException("Unexpected code Springer API: " + resp.code()+" "+resp);
-			response = new JSONObject(resp.body().string()).toString();
-			System.out.println(response);
-			resp.close();
-		
-		}catch (Exception  e) {
-			System.out.println("Function: updateMendeleyKey(),"+e.getMessage());
-		}
-
-		return response;
-	}
 	
 	public String analyseTitle(String title)
 	{
@@ -415,4 +385,5 @@ public class MendeleyApiService{
 		
 		return res;
 	}
+	
 }

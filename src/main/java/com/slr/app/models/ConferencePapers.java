@@ -17,7 +17,7 @@ import javax.persistence.TemporalType;
 
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
 /**
@@ -81,7 +81,6 @@ public class ConferencePapers implements java.io.Serializable {
 		this.id = id;
 	}
 
-	@JsonBackReference
 	public Editions getEditions() {
 		return this.editions;
 	}
@@ -90,7 +89,7 @@ public class ConferencePapers implements java.io.Serializable {
 		this.editions = editions;
 	}
 
-	@JsonBackReference
+	@JsonIgnore
 	public Publications getPublications() {
 		return this.publications;
 	}

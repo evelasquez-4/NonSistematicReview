@@ -33,7 +33,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @Table(name = "publications", schema = "slr")
-@JsonIgnoreProperties({"hibernateLazyinitializer","handler"})
+@JsonIgnoreProperties(value={"hibernateLazyInitializer","handler","fieldHandler"})
 public class Publications implements java.io.Serializable {
 	
 	private static final long serialVersionUID = 1L;
@@ -134,7 +134,10 @@ public class Publications implements java.io.Serializable {
 	
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "publications")
 	private Set<PublicationKeywords> publicationKeywordses = new HashSet<PublicationKeywords>(0);
-
+	
+	@Column(name = "api_state")
+	private int apiState;
+	
 	public Publications() {
 	}
 
@@ -303,33 +306,6 @@ public class Publications implements java.io.Serializable {
 		this.regDate = regDate;
 	}
 	
-	
-	
-//	public Set<BookChapters> getBookChapterses() {
-//		return this.bookChapterses;
-//	}
-//
-//	public void setBookChapterses(Set<BookChapters> bookChapterses) {
-//		this.bookChapterses = bookChapterses;
-//	}
-//
-//	public Set<JournalEditorials> getJournalEditorialses() {
-//		return this.journalEditorialses;
-//	}
-//
-//	public void setJournalEditorialses(Set<JournalEditorials> journalEditorialses) {
-//		this.journalEditorialses = journalEditorialses;
-//	}
-//
-//	public Set<ConferenceEditorials> getConferenceEditorialses() {
-//		return this.conferenceEditorialses;
-//	}
-//
-//	public void setConferenceEditorialses(Set<ConferenceEditorials> conferenceEditorialses) {
-//		this.conferenceEditorialses = conferenceEditorialses;
-//	}
-
-
 	public String getRgInfo() {
 		return this.rgInfo;
 	}
@@ -402,31 +378,6 @@ public class Publications implements java.io.Serializable {
 		this.authorPublicationses = authorPublicationses;
 	}
 
-//	public Set<ConferencePapers> getConferencePaperses() {
-//		return this.conferencePaperses;
-//	}
-//
-//	public void setConferencePaperses(Set<ConferencePapers> conferencePaperses) {
-//		this.conferencePaperses = conferencePaperses;
-//	}
-
-//	public Set<Books> getBookses() {
-//		return this.bookses;
-//	}
-//
-//	public void setBookses(Set<Books> bookses) {
-//		this.bookses = bookses;
-//	}
-
-//	public Set<JournalPapers> getJournalPaperses() {
-//		return this.journalPaperses;
-//	}
-//
-//	public void setJournalPaperses(Set<JournalPapers> journalPaperses) {
-//		this.journalPaperses = journalPaperses;
-//	}
-	
-	//@JsonManagedReference
 	@JsonIgnore
 	public Set<PublicationKeywords> getPublicationKeywordses() {
 		return this.publicationKeywordses;
@@ -435,6 +386,16 @@ public class Publications implements java.io.Serializable {
 	public void setPublicationKeywordses(Set<PublicationKeywords> publicationKeywordses) {
 		this.publicationKeywordses = publicationKeywordses;
 	}
+
+	public int getApiState() {
+		return apiState;
+	}
+
+	public void setApiState(int apiState) {
+		this.apiState = apiState;
+	}
+	
+	
 
 	//funcion que extrae DOI de una publicacion
 	public String extractDOI(){
@@ -451,13 +412,7 @@ public class Publications implements java.io.Serializable {
 		return getEe().contains("doi.org/");
 	}
 	
-	public boolean hasIsbn() {
-		String type = getDocType();
-		if(type == "book" || type == "incollection") {
-			
-		}
-		return false;
-	}
+	
 	@Override
 	public String toString() {
 

@@ -25,4 +25,17 @@ public interface AuthorsRepository extends JpaRepository<Authors, Long>
 	public List<Authors> getAuthorsByGroupPublicationUpdated(@Param("grupo") int grupo,
 			@Param("publication_updated") boolean publication_updated,
 			@Param("limit") int limit);
+	
+	
+	//query que actualiza la afiliacion de los autores registrados en slr.author_publications
+	@Query(value = "SELECT  DISTINCT au.* "
+			+"FROM slr.authors au " 
+			+"LEFT JOIN slr.author_publications ap ON ap.author_id = au.id" 
+			+" WHERE ap.author_id IS NOT NULL AND au.publications_updated = :publication_updated " 
+			+" AND au.insert_group = :grupo" 
+			+" LIMIT :limit ", nativeQuery = true)
+	public List<Authors> getAuthorsToUpdateAffiliation(
+			@Param("publication_updated") boolean publication_updated,
+			@Param("grupo") int grupo,
+			@Param("limit") int limit );
 }

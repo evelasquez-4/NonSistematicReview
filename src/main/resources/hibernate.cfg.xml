@@ -6,12 +6,12 @@
 	<session-factory>
 		 <!-- JDBC Database connection settings -->
         <property name="connection.driver_class">org.postgresql.Driver</property>
-		<property name="connection.url">jdbc:postgresql://localhost:5432/dbslr</property>
+		<property name="connection.url">jdbc:postgresql://127.0.0.1:5432/dbslr</property>
 		<property name="connection.username">postgres</property>
 		<property name="connection.password">postgres</property>
 		
 		<!-- JDBC connection pool settings ... using built-in test pool -->
-        <property name="connection.pool_size">3</property>
+        <property name="connection.pool_size">30</property>
         
         <!-- Select our SQL dialect -->
         <property name="dialect">org.hibernate.dialect.PostgreSQL92Dialect</property>
@@ -24,7 +24,7 @@
         <property name="hibernate.search.default.directory_provider">filesystem</property>
         <property name="hibernate.search.default.indexBase">./indexes/</property>
        <!-- hibernate batch enable -->	
-		<property name="hibernate.jdbc.batch_size">50</property>
+		<property name="hibernate.jdbc.batch_size">500</property>
 		<property name="hibernate.cache.use_second_level_cache">false</property>
 		
 		<mapping class="com.slr.app.models.Authors"/>
@@ -35,17 +35,15 @@
 		<mapping class="com.slr.app.models.ConferenceEditorials"/>
 		<mapping class="com.slr.app.models.ConferencePapers"/>
 		<mapping class="com.slr.app.models.Countries"/>
-		<mapping class="com.slr.app.models.Departments"/>
+		<mapping class="com.slr.app.models.Organizations"/>
 		
 		<mapping class="com.slr.app.models.Editions"/>
-		<mapping class="com.slr.app.models.Institutions"/>
 		<mapping class="com.slr.app.models.Journals"/>
 		<mapping class="com.slr.app.models.JournalEditorials"/>
 		<mapping class="com.slr.app.models.JournalPapers"/>
 		<mapping class="com.slr.app.models.Keywords"/>
 		<mapping class="com.slr.app.models.Publications"/>
-		<mapping class="com.slr.app.models.PublicationKeywords"/>
-		<mapping class="com.slr.app.models.Publishers"/>	
+		<mapping class="com.slr.app.models.PublicationKeywords"/>	
 		<mapping class="com.slr.app.models.DblpPublications"/>
 		
 		 <!-- dbcp connection pool configuration -->

@@ -1,5 +1,6 @@
 package com.slr.app.services;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.slr.app.models.Publications;
@@ -33,8 +34,12 @@ public class SpringerApiService
 			.writeTimeout(60, TimeUnit.SECONDS)
 			.readTimeout(60, TimeUnit.SECONDS)
 			.build();
-	private String api_key = "&api_key=de56a248cf6ecfa4f5dbce1342c57e81&s=3";
+	private String api_key = "api_key=de56a248cf6ecfa4f5dbce1342c57e81&s=1";
 	private String urlBase;
+	@Autowired
+	private PublicationsServices pub_service;
+	
+
 	
 	public JSONObject findSpringerPublicationByDOI(String doi) throws Exception
 	{
@@ -64,7 +69,7 @@ public class SpringerApiService
 	public JSONObject findSpringerPublication(String param)
 	{
 		JSONObject res = new JSONObject();
-		setUrlBase("http://api.springernature.com/meta/v2/json?"+param+"&p=1"+api_key);
+		setUrlBase("http://api.springernature.com/meta/v2/json?"+api_key+param);
 		
 		Request request = new Request.Builder()
 				.url(this.urlBase)
@@ -243,19 +248,24 @@ public class SpringerApiService
 	{
 		List<String> res = new ArrayList<>();
 		try {
-			JSONArray facets = json.getJSONArray("facets");
+//			JSONArray facets = json.getJSONArray("facets");
+//			
+//			facets.iterator().forEachRemaining(facet->{
+//				if( ((JSONObject) facet).getString("name").equals("keyword") ) {
+//					
+//					((JSONObject) facet).getJSONArray("values")
+//					.iterator().forEachRemaining( keywords -> {
+//						
+//						res.add( ((JSONObject) keywords).getString("value") );
+//					});
+//				}
+//			});
 			
-			facets.iterator().forEachRemaining(facet->{
-				if( ((JSONObject) facet).getString("name").equals("keyword") ) {
-					
-					((JSONObject) facet).getJSONArray("values")
-					.iterator().forEachRemaining( keywords -> {
-						
-						res.add( ((JSONObject) keywords).getString("value") );
-					});
-				}
+			JSONArray keywords = json.getJSONArray("keyword");
+			
+			keywords.iterator().forEachRemaining(key->{
+				res.add(key.toString());
 			});
-			
 			
 		} catch (JSONException e) {
 			System.err.println("Function: obtainKeywords(), "+e.getMessage());
@@ -334,4 +344,70 @@ public class SpringerApiService
 		return params;
 	}
 	
+	
+	public String obtainSpringerApiParam(List<Publications> publications) {
+		String res = "";
+		List<String> parametros = new ArrayList<String>();
+		
+		for (Publications publication : publications) {
+			
+			/* { "key" : String, dblp_key,
+			 * 	"has_doi" : boolean,
+			 * 	"doi" : String, publication doi,
+			 * 	"has_isbn" : boolean,
+			 * 	"isbn" : String, publication isbn
+			 * }
+			 */
+			JSONObject json_param = this.pub_service.getParameterToApiUpdateMendeleySpringer(publication);
+			
+			
+			if(json_param.getBoolean("has_doi") )
+				 parametros.add( "doi:"+json_param.getString("doi") );
+			
+			if(json_param.getBoolean("has_isbn"))
+					parametros.add( "isbn:"+json_param.getString("isbn") );
+		}
+		
+		if(!parametros.isEmpty()) {
+			res = parametros.get(0);
+			
+			for(int i=1;i<parametros.size();i++) 
+				res += " OR "+parametros.get(i);
+			
+		}else
+			return res = "";
+		
+		try {
+			res = URLEncoder.encode(res,java.nio.charset.StandardCharsets.UTF_8.toString());
+					
+		}catch (Exception e) {
+			System.err.println("Function obtainSpringerApiParam(), "+e.getMessage());
+		}
+		
+		return "&p="+publications.size()+"&q=("+res+")";
+	}
+
+	
+	public JSONObject searchPublicationByListParameters(JSONObject springer, List<String> params) {
+		JSONObject response  = new JSONObject();
+		
+		try {
+			JSONArray elements = springer.getJSONArray("records");
+			
+			for(int i =0;i<elements.length();i++) {
+				JSONObject element = elements.getJSONObject(i);
+				
+				if(element.has("doi") 
+						&& params.contains(element.getString("doi")) )
+					return response = element;
+				
+				if(element.has("isbn") 
+						&& params.contains(element.getString("isbn")) )
+					return response = element;
+			}
+		} catch (Exception e) {
+			System.err.println("Function searchPublicationByListParameters(), "+e.getMessage());
+		}
+		return response;
+	}
 }

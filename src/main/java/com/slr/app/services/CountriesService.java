@@ -1,11 +1,9 @@
 package com.slr.app.services;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
-
-import javax.persistence.EntityManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,6 +11,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.slr.app.helpers.SlrHibernateLuceneIndex;
 import com.slr.app.models.Countries;
 import com.slr.app.repositories.CountriesRepository;
 
@@ -25,6 +24,8 @@ public class CountriesService {
 
 	@Autowired
 	private CountriesRepository country_repo;
+	@Autowired
+	private SlrHibernateLuceneIndex lucene_index;
 	
 	public Countries findById(Long id){
 		Optional<Countries> res = this.country_repo.findById(id);
@@ -36,6 +37,13 @@ public class CountriesService {
 		return res.get();
 	}
 	
+	public Countries getDefaultCountrie() {
+		return findById(Long.valueOf(0));
+	}
+	
+	public Countries save(Countries countries) {
+		return this.country_repo.save(countries);
+	}
 	
 	public void loadCountriesFromAPI(String continent) throws Exception
 	{
@@ -55,20 +63,11 @@ public class CountriesService {
 			json = new JSONArray(response.body().string());
 			json.iterator().forEachRemaining(country->{
 				
-//				Countries c = new Countries();
-//				String name = ((JSONObject) country).getString("name");
-//				String code = ((JSONObject) country).getString("alpha2Code");
-//				
-//				c.setCountryName( new String(name.getBytes(Charset.forName("ISO-8859-1")), Charset.forName("UTF-8")));
-//				c.setCode(new String(code.getBytes(Charset.forName("ISO-8859-1")),Charset.forName("UTF-8")));
-//				c.setCreatedAt(new Date());
-//				
-//				this.country_repo.saveAndFlush(c);
-				
 				this.country_repo.save(new Countries(0, 
 						((JSONObject) country).getString("name"),
 						((JSONObject) country).getString("alpha2Code"), 
 						new Date(),
+						((JSONObject) country).getString("alpha3Code"),
 						null));
 				
 			});
@@ -81,5 +80,15 @@ public class CountriesService {
 			e.printStackTrace();
 		}
 		
+	}
+
+
+	public Countries getCountrieOrDefault(String country_name) {
+		List<Countries> list = this.lucene_index.findCountriesByName(country_name, 1);
+		
+		if(list.isEmpty())
+			return getDefaultCountrie();
+
+		return list.get(0);
 	}
 }

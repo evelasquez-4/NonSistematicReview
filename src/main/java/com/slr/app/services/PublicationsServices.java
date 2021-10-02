@@ -4,12 +4,14 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.slr.app.models.Authors;
 import com.slr.app.models.DblpPublications;
 import com.slr.app.models.Publications;
 import com.slr.app.repositories.PublicationsRepository;
@@ -19,6 +21,13 @@ public class PublicationsServices {
 
 	@Autowired
 	private PublicationsRepository publication_repository;
+	@Autowired
+	private AuthorPublicationsService authpub_service;
+	@Autowired
+	private AuthorsService author_service;
+	@Autowired
+	private PublicationKeywordsService pubkey_service;
+	
 	
 	public List<Publications> getPublicationsFromAuthorId(Long author_id, String updated_state){
 		return this.publication_repository.getPublicationsFromAuthorId(author_id, updated_state);
@@ -42,12 +51,14 @@ public class PublicationsServices {
 			throw new RuntimeException("Publication key: "+key+" does not exists.");
 	}
 
-	public List<Publications> getPublicationsNoAuthors(Long publication_id){
-		return this.publication_repository.getPublicationsNoAuthors(publication_id);
+	public List<Publications> getPublicationsAuthors(Long publication_id){
+		return this.publication_repository.getPublicationsAuthors(publication_id);
 	}
 	
 	public boolean hasAuthors(Long publication_id) {
-		return getPublicationsNoAuthors(publication_id).isEmpty();
+		//return getPublicationsAuthors(publication_id).isEmpty();
+		return Objects.nonNull( this.authpub_service
+				.findAuthorPublicationsByPublicationId(publication_id).get(0).getAuthors() );
 	}
 	
 	public Publications savePublications(Publications publications) {
@@ -137,6 +148,38 @@ public class PublicationsServices {
 				.put("doi", doi)
 				.put("has_isbn", has_isbn)
 				.put("isbn", isbn);
+		
+	}
+	
+	
+	
+	public List<Publications> getPublicationsForSpringerApiUPdate(String doc_type,int limit){
+		return this.publication_repository
+				.getPublicationsForSpringerApiUPdate(doc_type, limit);
+	}
+	
+	public List<Publications>  getPublicationsForMendeleyApiUpdate(String doc_type, int limit){
+		return this.publication_repository
+				.getPublicationsForMendeleyApiUpdate(doc_type, limit);
+	}
+	
+	public List<Publications> getPublicationsForIEEEApiUpdate(String doc_type, int limit){
+		return this.publication_repository
+				.getPublicationsForIEEEApiUpdate(doc_type, limit);
+	}
+	
+	public void  updatePublicationDataFromAPIS(Publications publication,
+		List<String> authors, List<String> keywords) {
+		
+		
+		if( !hasAuthors(publication.getId()) && !authors.isEmpty() ) {
+			List<Authors> authors_list = this.author_service.findAuthorsIndexedByListAuthors(authors);
+			this.authpub_service.saveAuthorPublications(publication, authors_list);
+		}
+		
+		if(!keywords.isEmpty()) {
+			this.pubkey_service.registerPublicationsKeywords(keywords, publication);
+		}
 		
 	}
 	

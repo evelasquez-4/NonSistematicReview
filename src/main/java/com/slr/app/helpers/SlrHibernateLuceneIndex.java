@@ -13,6 +13,7 @@ import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.hibernate.search.util.common.SearchException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.slr.app.models.AuthorPublications;
 import com.slr.app.models.Authors;
@@ -21,13 +22,12 @@ import com.slr.app.models.DblpPublications;
 import com.slr.app.models.PublicationKeywords;
 import com.slr.app.models.Publications;
 
+@CrossOrigin
 @Component
 public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefreshedEvent> 
 {
 	@Autowired
 	private EntityManager entityManager;
-	
-	
 	
 	private Integer limit = 10;
 	
@@ -39,30 +39,45 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 			MassIndexer indexer = null;
 			switch (entity) {
 				case "countries":
-					indexer = searchSession.massIndexer( Countries.class ).threadsToLoadObjects( 7 );
+					indexer = searchSession.massIndexer( Countries.class )
+						.idFetchSize(150)
+						.batchSizeToLoadObjects(25)
+						.threadsToLoadObjects(12);
 					indexer.startAndWait();
 				break;
 				case "dblp_publications":
-					indexer = searchSession.massIndexer( DblpPublications.class ).threadsToLoadObjects( 7 );
+					indexer = searchSession.massIndexer( DblpPublications.class )
+							.idFetchSize(150)
+							.batchSizeToLoadObjects(25)
+							.threadsToLoadObjects(12);
 					indexer.startAndWait();
 				break;
 				case "authors":
-					indexer = searchSession.massIndexer( Authors.class ).threadsToLoadObjects( 7 );
+					indexer = searchSession.massIndexer( Authors.class )
+							.idFetchSize(150)
+							.batchSizeToLoadObjects(25)
+							.threadsToLoadObjects(12);
 					indexer.startAndWait();
 				break;
 				
 				case "publications":
-					indexer = searchSession.massIndexer( Publications.class ).threadsToLoadObjects( 7 );
+					indexer = searchSession.massIndexer( Publications.class ).idFetchSize(150)
+							.batchSizeToLoadObjects(25)
+							.threadsToLoadObjects(12);
 					indexer.startAndWait();
 				break;
 				
 				case "author_publications":
-					indexer = searchSession.massIndexer( AuthorPublications.class ).threadsToLoadObjects( 7 );
+					indexer = searchSession.massIndexer( AuthorPublications.class ).idFetchSize(150)
+							.batchSizeToLoadObjects(25)
+							.threadsToLoadObjects(12);
 					indexer.startAndWait();
 				break;
 				
 				case "publication_keywords":
-					indexer = searchSession.massIndexer( PublicationKeywords.class ).threadsToLoadObjects( 7 );
+					indexer = searchSession.massIndexer( PublicationKeywords.class ).idFetchSize(150)
+							.batchSizeToLoadObjects(25)
+							.threadsToLoadObjects(12);
 					indexer.startAndWait();
 				break;
 			}
@@ -75,23 +90,24 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 	}
 	
 	//search indexed country by name
+	
+	@Transactional
 	public List<Countries> findCountriesByName(String country,Integer ... cant){
 		SearchSession searchSession = Search.session(this.entityManager);
 		try {
+			
 			SearchResult<Countries> result = searchSession.search(Countries.class)
-					.where(c->c. match()
-							.field("countryName")
-							.matching(country)
+					.where(c->c.bool()
+							.should(c.match().field("country_name").matching(country))
+							.should(c.match().fields("country_code","country_code_alpha").matching(country))
 					)
 					.fetch( cant.length > 0 ? cant[0].intValue() : limit);
-			this.entityManager.close();
 			return result.hits();
 		}catch(SearchException e){
 			System.out.println("function: findCountriesByName() "+e.getMessage());
 		}
 		return new ArrayList<Countries>();
 	}
-	
 
 //	@Override
 //	@Transactional
@@ -138,37 +154,59 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 	}
 */
 	@Transactional
-	public List<Authors> findIndexedAuthorsByNamesHomonyns(String author, Integer ... cant){
+	public List<Authors> findIndexedAuthorsByNamesHomonyns(String author,String table, Integer ... cant){
 
 		SearchSession searchSession = Search.session(this.entityManager);
-		try{
+		
+		try {
 			List<Authors> authors = new ArrayList<Authors>();
-			List<AuthorPublications> results = searchSession.search(AuthorPublications.class)
-				.where(ap -> ap.bool() 
-						.should(ap.match().field("authors.names").matching(author))
-						.should(ap.match().field("authors.homonyns").matching(author))
-				)
-				.fetchHits( cant.length > 0 ? cant[0].intValue() : this.limit );
-//			SearchResult<Authors> results = searchSession.search(Authors.class)
-//					.where(auth -> auth.bool()
-//								.should(auth.match()
-//										.field("names")
-//										.matching(author))
-//								.should(	auth.match()
-//											.field("homonyns")
-//											.matching(author) )
-//							)
-//					.fetch( cant.length > 0 ? cant[0].intValue() : limit );
+			switch (table) {
+			case  "author_publications":
+					System.err.println("Name: "+author+"\ntable: "+table);
+					List<AuthorPublications> results = searchSession.search(AuthorPublications.class)
+							.where(ap -> ap.bool() 
+									.should(ap.phrase().field("authors.names").matching(author))
+									.should(ap.match().field("authors.homonyns").matching(author))
+							)
+							.fetchHits( cant.length > 0 ? cant[0].intValue() : this.limit );
+					
+					if(results.isEmpty()) {
+						
+						results = searchSession.search(AuthorPublications.class)
+								.where(ap->ap.bool()
+										.should(ap.simpleQueryString().field("authors.names").matching("*"+author))
+										.should(ap.wildcard().field("authors.homonyns").matching(author+"*"))
+								).fetchHits(cant.length > 0 ? cant[0].intValue() : this.limit );
+					}
+						
+					
+					for (AuthorPublications ap : results) 
+						authors.add(ap.getAuthors());
+
+			break;
 			
-			results.forEach(r->{
-				authors.add(r.getAuthors());
-			});
+			case "authors":
+				System.err.println("Name: "+author+"\n table: "+table);
+				SearchResult<Authors> resp = searchSession.search(Authors.class)
+				.where(auth -> auth.bool()
+							.should(auth.match()
+									.field("author_names")
+									.matching(author))
+							.should(	auth.match()
+										.field("author_homonyns")
+										.matching(author) )
+						)
+				.fetch( cant.length > 0 ? cant[0].intValue() : limit );
+				authors = resp.hits();
+				
+			break;
+			}
 			
-			return  authors;
+			return  authors.stream().distinct().collect(java.util.stream.Collectors.toList());
 			
 		} catch (Exception e) {
 			System.err.println("function findIndexedAuthorsByName(): "+e.getMessage());
-			return null;
+			throw new RuntimeException("function findIndexedAuthorsByName(): "+e.getMessage());
 		}
 	}
 	
@@ -258,9 +296,10 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 	
 	public List<AuthorPublications> findPublicationsByTitleAbstract(String text, Integer ... limit){
 		SearchSession searchSession = Search.session(this.entityManager);
+		
 		try {
 			List<AuthorPublications> results = searchSession.search(AuthorPublications.class)
-					.where(x -> x.nested().objectField("publications") 
+					.where(x -> x.nested().objectField("publications")
 							.nest( x.bool()
 									.should(	x.phrase()
 												.field("publications.title")
@@ -273,7 +312,16 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 								)
 							)
 					.fetchHits( limit.length < 1 ? this.limit : limit[0].intValue() );
-							
+			
+			if(results.isEmpty()) {
+				results = searchSession.search(AuthorPublications.class)
+						.where(x -> x.bool()
+								.should(x.simpleQueryString().fields("publications.title","publications.abstract_").matching("*"+text+"*"))
+								)
+						.fetchHits( limit.length < 1 ? this.limit : limit[0].intValue() );
+			}
+			
+		
 			return results;
 		} catch (Exception e) {
 			System.out.println("function findPublicationsByTitleAbstract(), "+e.getMessage());
@@ -294,8 +342,8 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 					.where( x-> x.nested().objectField("publications")
 							.nest( x.bool(  y->{
 									if(field.equalsIgnoreCase("ee") || field.equalsIgnoreCase("doi")) {
-										y.should( x.match().field("publications.ee").matching(text))
-										.should(x.wildcard().field("publications.ee").matching("http*/"+text));
+										y.should( x.match().field("publications.ee").matching(text));
+										//.should(x.wildcard().field("publications.ee").matching("http*/"+text));
 									}
 									else if(field.equalsIgnoreCase("rginfo")) 
 										y.should( x.wildcard().field("publications.rgInfo").matching("*"+text+"*"));
@@ -332,6 +380,8 @@ public class SlrHibernateLuceneIndex//implements ApplicationListener<ContextRefr
 									y.should(x.match().field("publications.books.bookTitle").matching(text));
 								else if(field_document.equalsIgnoreCase("series"))
 									y.should(x.match().field("publications.books.series").matching(text));
+								else if(field_document.equalsIgnoreCase("isbn"))
+									y.should(x.match().field("publications.books.isbn").matching(text));
 								else
 									System.out.println( "Function findIndexedPublicationsByNestedTypeDocument(), field "+field_document+" not found as fulltext.");
 							}

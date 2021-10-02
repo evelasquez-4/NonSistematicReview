@@ -40,6 +40,36 @@ public interface PublicationsRepository extends JpaRepository<Publications, Long
 			+ " INNER JOIN slr.author_publications ap ON ap.publication_id = p.id"
 			+ " WHERE ap.publication_id = :publication_id  "
 			+ " AND (ap.author_id::::CHARACTER VARYING <> '' OR ap.author_id IS NOT NULL)", nativeQuery = true)
-	public List<Publications> getPublicationsNoAuthors(
+	public List<Publications> getPublicationsAuthors(
 			@Param("publication_id") Long publication_id);
+	
+	//query for list publications to update in springer api
+	@Query(value = "SELECT p.* FROM slr.publications p"
+			+ " WHERE p.updated_state = '1.inserted' AND p.api_state = 0 "
+			+ " AND p.doc_type = :doc_type ORDER BY p.id ASC"
+			+ " LIMIT :limit", nativeQuery = true)
+	public List<Publications> getPublicationsForSpringerApiUPdate(
+			@Param("doc_type") String doc_type,
+			@Param("limit") int limit
+			);
+	
+	//query for list publications to update in mendeley api
+	@Query(value = "SELECT p.* FROM slr.publications p"
+			+ " WHERE p.updated_state = '1.inserted' AND p.api_state IN (0,1) "
+			+ " AND p.doc_type = :doc_type ORDER BY p.id ASC"
+			+ " LIMIT :limit", nativeQuery = true)
+	public List<Publications> getPublicationsForMendeleyApiUpdate(
+			@Param("doc_type") String doc_type,
+			@Param("limit") int limit
+			);
+	
+	//query for list publications to update in ieee api
+	@Query(value = "SELECT p.* FROM slr.publications p"
+			+ " WHERE p.updated_state = '1.inserted' AND p.api_state IN (1,2) "
+			+ " AND p.doc_type = :doc_type ORDER BY p.id ASC"
+			+ " LIMIT :limit", nativeQuery = true)
+	public List<Publications> getPublicationsForIEEEApiUpdate(
+			@Param("doc_type") String doc_type,
+			@Param("limit") int limit
+			);
 }

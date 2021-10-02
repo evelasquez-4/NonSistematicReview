@@ -8,14 +8,13 @@ import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Embedded;
-import javax.persistence.Entity;
+import javax.persistence.Entity; 
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -26,9 +25,11 @@ import org.hibernate.search.engine.backend.types.ObjectStructure;
 import org.hibernate.search.engine.backend.types.Projectable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.vladmihalcea.hibernate.type.array.ListArrayType;
 
 /**
@@ -40,24 +41,20 @@ import com.vladmihalcea.hibernate.type.array.ListArrayType;
 	    name = "list-array",
 	    typeClass = ListArrayType.class
 	)
+@JsonIgnoreProperties(value={"hibernateLazyInitializer","handler","fieldHandler"})
+//@Indexed(index = "idx_authors")//remove before indexing author_publications 
 public class Authors implements java.io.Serializable {
 
 	private static final long serialVersionUID = 1L;
-	//@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "auth_sequence")
-	//@SequenceGenerator(name = "auth_sequence", sequenceName = "slr.author_publications_id_seq",allocationSize=1)
 	
 	@Id
-	@Column(name = "id", unique = true, nullable = false)
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@SequenceGenerator(name = "auth_sequence", sequenceName = "slr.authors_id_seq",allocationSize=1)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "auth_sequence")
+	@Column(name = "id", unique = true, nullable = false)	
 	private long id;
 	
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "department_id",referencedColumnName = "id")
-	@Embedded
-    @IndexedEmbedded(structure = ObjectStructure.NESTED)
-	private Departments departments;
-	
 	private String key;
+	
 	private String pid;
 	
 	private String position;
@@ -67,14 +64,12 @@ public class Authors implements java.io.Serializable {
 	private String disciplines;
 	
 	@Column(name = "names", nullable = false)
-	//@Field(name = "names",index=Index.YES, analyze=Analyze.YES, store=Store.NO)
-	@FullTextField(analyzer = "english_analyzer",projectable = Projectable.YES)
+	@FullTextField(analyzer = "english_analyzer",projectable = Projectable.YES/*,name = "author_names"*/)
 	private String names;
 	
 	@Type(type = "list-array")
 	@Column(	name = "homonyns",	columnDefinition = "text[]" )
-	//@Field(name = "homonyns",index = Index.YES, analyze = Analyze.YES, store = Store.NO)
-	@GenericField
+	@GenericField/*(name = "author_homonyns")*/
 	private List<String> homonyns;
 	
 	@Type(type = "list-array")
@@ -93,14 +88,20 @@ public class Authors implements java.io.Serializable {
 	@Column(	name = "awards",	columnDefinition = "text[]" )
 	private List<String> awards;
 	
-	
-	private String affiliation;
-
 	@Column(name = "insert_group")
 	private int insertGroup;
 	
 	@Column(name = "publications_updated", nullable = true)
 	private boolean publicationsUpdated;
+	
+	@Type(type = "list-array")
+	@Column(	name = "affiliations",	columnDefinition = "text[]" )
+	private List<String> affiliations;
+	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "authors")
+	@Embedded
+    @IndexedEmbedded(structure = ObjectStructure.NESTED)
+	private Set<Organizations> organizationses = new HashSet<Organizations>(0);
 	
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "authors")
 	private Set<AuthorPublications> authorPublicationses = new HashSet<AuthorPublications>(0);
@@ -112,35 +113,13 @@ public class Authors implements java.io.Serializable {
 		this.id = id;
 		this.names = names;
 	} 
-
-	public Authors(long id, Departments departments, String key, String pid, String position, String skills,
-			String disciplines, String names, List<String> homonyns, List<String> urls, List<String> cites, String mdate,
-			Date createdAt, List<String> awards ,String affiliation, int group) {
-		this.id = id;
-		this.departments = departments;
-		this.key = key;
-		this.pid = pid;
-		this.position = position;
-		this.skills = skills;
-		this.disciplines = disciplines;
-		this.names = names;
-		this.homonyns = homonyns;
-		this.urls = urls;
-		this.cites = cites;
-		this.mdate = mdate;
-		this.createdAt = createdAt;
-		this.awards = awards;
-		this.affiliation = affiliation;
-		this.insertGroup = group;
-		this.publicationsUpdated = false;
-	}
 	
-	public Authors(long id, Departments departments, String key, String pid, String position, String skills,
+	public Authors(long id, Set<Organizations> organizationses, String key, String pid, String position, String skills,
 			String disciplines, String names, List<String> homonyns, List<String> urls, List<String> cites,
-			Date createdAt, List<String> awards, String affiliation, String mdate, Integer insertGroup,
-			Boolean publicationsUpdated, Set<AuthorPublications> authorPublicationses) {
+			String mdate,Date createdAt, List<String> awards, Integer insertGroup,
+			Boolean publicationsUpdated, List<String> affiliations,Set<AuthorPublications> authorPublicationses) {
 		this.id = id;
-		this.departments = departments;
+		this.organizationses = organizationses;
 		this.key = key;
 		this.pid = pid;
 		this.position = position;
@@ -150,12 +129,12 @@ public class Authors implements java.io.Serializable {
 		this.homonyns = homonyns;
 		this.urls = urls;
 		this.cites = cites;
+		this.mdate = mdate;
 		this.createdAt = createdAt;
 		this.awards = awards;
-		this.affiliation = affiliation;
-		this.mdate = mdate;
 		this.insertGroup = insertGroup;
 		this.publicationsUpdated = publicationsUpdated;
+		this.affiliations = affiliations;
 		this.authorPublicationses = authorPublicationses;
 	}
 
@@ -167,12 +146,12 @@ public class Authors implements java.io.Serializable {
 		this.id = id;
 	}
 
-	public Departments getDepartments() {
-		return this.departments;
+	public Set<Organizations> getOrganizationses() {
+		return this.organizationses;
 	}
 
-	public void setDepartments(Departments departments) {
-		this.departments = departments;
+	public void setOrganizationses(Set<Organizations> organizationses) {
+		this.organizationses = organizationses;
 	}
 
 	@Column(name = "key")
@@ -283,22 +262,12 @@ public class Authors implements java.io.Serializable {
 	public void setAwards(List<String> awards) {
 		this.awards = awards;
 	}
-
-	@Column(name = "affiliation")
-	public String getAffiliation() {
-		return affiliation;
-	}
-
-	public void setAffiliation(String affiliation) {
-		this.affiliation = affiliation;
-	}
 	
-	
-	public int getGroup() {
+	public int getInsertGroup() {
 		return insertGroup;
 	}
 
-	public void setGroup(int group) {
+	public void setInsertGroup(int group) {
 		this.insertGroup = group;
 	}
 
@@ -310,6 +279,16 @@ public class Authors implements java.io.Serializable {
 		this.publicationsUpdated = publicationsUpdated;
 	}
 	
+	
+	
+	public List<String> getAffiliations() {
+		return affiliations;
+	}
+
+	public void setAffiliations(List<String> affiliations) {
+		this.affiliations = affiliations;
+	}
+
 	//@JsonManagedReference
 	@JsonIgnore
 	public Set<AuthorPublications> getAuthorPublicationses() {
